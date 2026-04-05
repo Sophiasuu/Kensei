@@ -34,12 +34,12 @@ Here is the user's complete chart data:
 ${chartContext}
 
 Guidelines:
-- Speak with calm authority and poetic warmth, like an ancient sage who genuinely cares.
-- Reference specific details from their chart (signs, nakshatras, pillars, life path numbers) when answering.
-- Weave insights from multiple traditions together when relevant.
-- Keep responses concise but meaningful — 2-4 paragraphs maximum.
-- Use metaphor sparingly and naturally — don't over-dramatize.
-- If asked something outside the chart domain, gently redirect to cosmic insights.
+- Be brief and enigmatic. 2-4 sentences maximum — never more.
+- Speak like a calm, ancient oracle: poetic but spare. Every word should feel chosen.
+- Reference one or two specific details from their chart — never dump information.
+- Always end your response with a thought-provoking open question that invites the seeker to reflect deeper.
+- Use metaphor naturally — let mystery breathe, don't over-explain.
+- If asked something outside the chart domain, gently redirect with a cosmic question.
 - Never reveal you are an AI. You are the Oracle.${langInstruction}`;
 
   const deepseekMessages = [
@@ -61,7 +61,7 @@ Guidelines:
         model: 'deepseek-chat',
         messages: deepseekMessages,
         temperature: 0.85,
-        max_tokens: 600,
+        max_tokens: 200,
         stream: true,
       }),
     });
@@ -79,6 +79,14 @@ Guidelines:
         const reader = res.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let closed = false;
+
+        function enqueue(chunk: Uint8Array) {
+          if (!closed) controller.enqueue(chunk);
+        }
+        function close() {
+          if (!closed) { closed = true; controller.close(); }
+        }
 
         try {
           while (true) {
@@ -94,15 +102,15 @@ Guidelines:
               if (!trimmed || !trimmed.startsWith('data: ')) continue;
               const payload = trimmed.slice(6);
               if (payload === '[DONE]') {
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                controller.close();
+                enqueue(encoder.encode('data: [DONE]\n\n'));
+                close();
                 return;
               }
               try {
                 const json = JSON.parse(payload);
                 const content = json.choices?.[0]?.delta?.content;
                 if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                  enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
                 }
               } catch { /* skip malformed */ }
             }
@@ -110,7 +118,7 @@ Guidelines:
         } catch (err) {
           console.error('Stream read error:', err);
         }
-        controller.close();
+        close();
       },
     });
 

@@ -6,6 +6,7 @@ import { getNumerologyReading } from './numerology';
 import { generateSynthesis } from './synthesis';
 import { generateInsights } from './insights';
 import { generateDeepAnalysis } from './deepAnalysis';
+import { generateCardDeepDives } from './cardDives';
 
 /* ─── Derive a 6-axis cosmic profile from all four systems ────────────── */
 function generateCosmicProfile(
@@ -71,6 +72,7 @@ export function generateFullReading(input: BirthData): FullReading {
     numerology.personalYear,
   );
   const deepAnalysis = generateDeepAnalysis(western, vedic, bazi, numerology);
+  const cardDeepDives = generateCardDeepDives(western, vedic, bazi, numerology);
   const cosmicProfile = generateCosmicProfile(
     western.sunSign.element,
     vedic.rashi.element,
@@ -80,5 +82,5 @@ export function generateFullReading(input: BirthData): FullReading {
     vedic.nakshatra.qualities,
   );
 
-  return { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, deepAnalysis, cosmicProfile };
+  return { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, deepAnalysis, cosmicProfile, cardDeepDives };
 }

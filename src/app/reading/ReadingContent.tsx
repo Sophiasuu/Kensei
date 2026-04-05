@@ -8,7 +8,8 @@ import RadarChart from '@/components/RadarChart';
 import { generateFullReading } from '@/lib/reading';
 import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
-import type { FullReading, PeriodInsight, DeepSection, LoveSection } from '@/types';
+import YinYang from '@/components/YinYang';
+import type { FullReading, PeriodInsight, DeepSection, LoveSection, CardDeepDive } from '@/types';
 
 /* ─────────────────────────────────────────────────────────────────
    Vertical icons — distinct glyphs for each tradition
@@ -441,27 +442,39 @@ function DeepAnalysisSection({
    Page section navigation (sticky left sidebar)
 ───────────────────────────────────────────────────────────────── */
 const NAV_SECTIONS = [
-  { id: 'sec-overview',  label: 'Overview',      icon: '✦' },
-  { id: 'sec-synthesis', label: 'Synthesis',      icon: '◈' },
-  { id: 'sec-general',   label: 'General',        icon: '✧' },
-  { id: 'sec-love',      label: 'Love',           icon: '♡' },
-  { id: 'sec-career',    label: 'Career',         icon: '◈' },
-  { id: 'sec-health',    label: 'Health',         icon: '◎' },
-  { id: 'sec-pastlife',  label: 'Past Life',      icon: '∞' },
+  { id: 'sec-overview',  label: 'Overview',      icon: '✦', locked: false },
+  { id: 'sec-synthesis', label: 'Synthesis',      icon: '◈', locked: false },
+  { id: 'sec-general',   label: 'General',        icon: '✧', locked: true },
+  { id: 'sec-love',      label: 'Love',           icon: '♡', locked: true },
+  { id: 'sec-career',    label: 'Career',         icon: '◈', locked: true },
+  { id: 'sec-health',    label: 'Health',         icon: '◎', locked: true },
+  { id: 'sec-pastlife',  label: 'Past Life',      icon: '∞', locked: true },
 ] as const;
 
 function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOpen: () => void; onReturn: () => void }) {
   const [active, setActive] = useState(NAV_SECTIONS[0].id as string);
 
   useEffect(() => {
-    const els = NAV_SECTIONS.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const unlocked = NAV_SECTIONS.filter(s => !s.locked);
+    const els = unlocked.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const obs = new IntersectionObserver(
-      (entries) => { entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }); },
-      { rootMargin: '-15% 0px -60% 0px', threshold: 0 },
+      (entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) setActive(e.target.id);
+        });
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
     );
     els.forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
 
   return (
     <nav className="reading-sidenav" aria-label="Page sections" style={{ fontSize: '1rem' }}>
@@ -472,11 +485,18 @@ function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOp
       {NAV_SECTIONS.map(sec => (
         <button
           key={sec.id}
-          className={`sidenav-item${active === sec.id ? ' active' : ''}`}
+          className={`sidenav-item${active === sec.id ? ' active' : ''}${sec.locked ? ' locked' : ''}`}
           style={{ fontSize: '1rem' }}
-          onClick={() => document.getElementById(sec.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          onClick={() => {
+            if (sec.locked) {
+              // Scroll to the gate instead
+              document.querySelector('.gate-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              scrollTo(sec.id);
+            }
+          }}
         >
-          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.icon}</span>
+          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.locked ? '🔒' : sec.icon}</span>
           <span>{sec.label}</span>
         </button>
       ))}
@@ -703,6 +723,10 @@ export default function ReadingContent() {
   const [insightTab, setInsightTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [chatOpen, setChatOpen] = useState(true);
   const [activeCard, setActiveCard] = useState<string | null>(null);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  const handleSignup = () => setShowSignup(true);
 
   /* Close modal on Escape */
   useEffect(() => {
@@ -711,6 +735,26 @@ export default function ReadingContent() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [activeCard]);
+
+  /* Exit-intent: warn on tab close / back navigation */
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    const onPopState = () => {
+      // Push state back so they stay on the page, then show our modal
+      window.history.pushState(null, '', window.location.href);
+      setShowExitModal(true);
+    };
+    // Push an extra history entry so back-button triggers popstate instead of leaving
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, []);
 
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
@@ -738,85 +782,18 @@ export default function ReadingContent() {
     );
   }
 
-  const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly } = reading;
+  const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, cardDeepDives } = reading;
   const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
 
   const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#B88AE8', Water: '#4278c0' };
   const domColor = elemAccent[synthesis.dominantElement] ?? '#C77DFF';
 
-  /* ── Western sign extra data ── */
-  const westernExtras: Record<string, { house: string; houseTheme: string; luckyDay: string; luckyNumbers: string; compatible: string; opposite: string; bodyArea: string; season: string; tarot: string }> = {
-    Aries:       { house: '1st House', houseTheme: 'Self, Identity & Appearance', luckyDay: 'Tuesday', luckyNumbers: '1, 9', compatible: 'Leo, Sagittarius, Gemini', opposite: 'Libra', bodyArea: 'Head & Face', season: 'Early Spring', tarot: 'The Emperor' },
-    Taurus:      { house: '2nd House', houseTheme: 'Values, Possessions & Self-Worth', luckyDay: 'Friday', luckyNumbers: '2, 6', compatible: 'Virgo, Capricorn, Cancer', opposite: 'Scorpio', bodyArea: 'Throat & Neck', season: 'Late Spring', tarot: 'The Hierophant' },
-    Gemini:      { house: '3rd House', houseTheme: 'Communication, Learning & Siblings', luckyDay: 'Wednesday', luckyNumbers: '3, 5', compatible: 'Libra, Aquarius, Aries', opposite: 'Sagittarius', bodyArea: 'Arms, Hands & Lungs', season: 'Early Summer', tarot: 'The Lovers' },
-    Cancer:      { house: '4th House', houseTheme: 'Home, Family & Emotional Roots', luckyDay: 'Monday', luckyNumbers: '2, 7', compatible: 'Scorpio, Pisces, Taurus', opposite: 'Capricorn', bodyArea: 'Chest & Stomach', season: 'Mid Summer', tarot: 'The Chariot' },
-    Leo:         { house: '5th House', houseTheme: 'Creativity, Romance & Self-Expression', luckyDay: 'Sunday', luckyNumbers: '1, 4', compatible: 'Aries, Sagittarius, Libra', opposite: 'Aquarius', bodyArea: 'Heart & Spine', season: 'Late Summer', tarot: 'Strength' },
-    Virgo:       { house: '6th House', houseTheme: 'Health, Service & Daily Routines', luckyDay: 'Wednesday', luckyNumbers: '5, 6', compatible: 'Taurus, Capricorn, Cancer', opposite: 'Pisces', bodyArea: 'Digestive System', season: 'Early Autumn', tarot: 'The Hermit' },
-    Libra:       { house: '7th House', houseTheme: 'Partnerships, Marriage & Contracts', luckyDay: 'Friday', luckyNumbers: '4, 6', compatible: 'Gemini, Aquarius, Leo', opposite: 'Aries', bodyArea: 'Lower Back & Kidneys', season: 'Mid Autumn', tarot: 'Justice' },
-    Scorpio:     { house: '8th House', houseTheme: 'Transformation, Sexuality & Shared Resources', luckyDay: 'Tuesday', luckyNumbers: '8, 9', compatible: 'Cancer, Pisces, Virgo', opposite: 'Taurus', bodyArea: 'Reproductive System', season: 'Late Autumn', tarot: 'Death' },
-    Sagittarius: { house: '9th House', houseTheme: 'Philosophy, Travel & Higher Learning', luckyDay: 'Thursday', luckyNumbers: '3, 7', compatible: 'Aries, Leo, Aquarius', opposite: 'Gemini', bodyArea: 'Thighs & Liver', season: 'Early Winter', tarot: 'Temperance' },
-    Capricorn:   { house: '10th House', houseTheme: 'Career, Ambition & Public Image', luckyDay: 'Saturday', luckyNumbers: '4, 8', compatible: 'Taurus, Virgo, Scorpio', opposite: 'Cancer', bodyArea: 'Bones, Knees & Joints', season: 'Mid Winter', tarot: 'The Devil' },
-    Aquarius:    { house: '11th House', houseTheme: 'Community, Innovation & Future Vision', luckyDay: 'Saturday', luckyNumbers: '4, 7', compatible: 'Gemini, Libra, Sagittarius', opposite: 'Leo', bodyArea: 'Ankles & Circulation', season: 'Late Winter', tarot: 'The Star' },
-    Pisces:      { house: '12th House', houseTheme: 'Spirituality, Dreams & the Unconscious', luckyDay: 'Thursday', luckyNumbers: '3, 7', compatible: 'Cancer, Scorpio, Taurus', opposite: 'Virgo', bodyArea: 'Feet & Lymphatic System', season: 'Late Winter', tarot: 'The Moon' },
-  };
-  const wExtra = westernExtras[western.sunSign.name] ?? westernExtras['Aries'];
-
-  /* ── Detail popover data for each tradition card ── */
-  const cardDetails: Record<string, { title: string; rows: { label: string; value: string }[]; description: string }> = {
-    western: {
-      title: `${western.sunSign.symbol} ${western.sunSign.name}`,
-      description: western.sunSign.description,
-      rows: [
-        { label: 'Element', value: western.sunSign.element },
-        { label: 'Modality', value: western.sunSign.modality ?? '—' },
-        { label: 'Ruling Planet', value: western.sunSign.rulingPlanet },
-        { label: 'Natural House', value: `${wExtra.house} — ${wExtra.houseTheme}` },
-        { label: 'Compatible Signs', value: wExtra.compatible },
-        { label: 'Opposite Sign', value: wExtra.opposite },
-        { label: 'Tarot Card', value: wExtra.tarot },
-        { label: 'Body Rulership', value: wExtra.bodyArea },
-        { label: 'Lucky Day', value: wExtra.luckyDay },
-        { label: 'Lucky Numbers', value: wExtra.luckyNumbers },
-        { label: 'Season', value: wExtra.season },
-        { label: 'Key Traits', value: western.sunSign.traits.join(', ') },
-      ],
-    },
-    vedic: {
-      title: vedic.rashi.name,
-      description: vedic.rashi.description,
-      rows: [
-        { label: 'Rashi Element', value: vedic.rashi.element },
-        { label: 'Ruling Planet', value: vedic.rashi.rulingPlanet },
-        { label: 'Nakshatra', value: `${vedic.nakshatra.name} — ${vedic.nakshatra.englishMeaning}` },
-        { label: 'Nakshatra Symbol', value: vedic.nakshatra.symbol },
-        { label: 'Deity', value: vedic.nakshatra.deity },
-        { label: 'Pada', value: String(vedic.nakshatra.pada) },
-        { label: 'Qualities', value: vedic.nakshatra.qualities.join(', ') },
-      ],
-    },
-    bazi: {
-      title: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element} Day Master`,
-      description: bazi.dayMaster.description,
-      rows: [
-        ...pillars.map(p => ({
-          label: p.label,
-          value: `${p.stem.chinese} ${p.stem.name} (${p.stem.element} ${p.stem.polarity}) / ${p.branch.chinese} ${p.branch.animal} (${p.branch.element})`,
-        })),
-        { label: 'Day Master Traits', value: bazi.dayMaster.traits.join(', ') },
-      ],
-    },
-    numerology: {
-      title: numerology.lifePath.isMaster ? `Master Number ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
-      description: numerology.lifePath.description,
-      rows: [
-        { label: 'Keywords', value: numerology.lifePath.keywords.join(', ') },
-        { label: 'Challenge', value: numerology.lifePath.challenge },
-        { label: 'Personal Year', value: String(numerology.personalYear) },
-        { label: 'Personal Month', value: String(numerology.personalMonth) },
-        { label: 'Personal Day', value: String(numerology.personalDay) },
-        { label: 'Traits', value: numerology.lifePath.traits.join(', ') },
-      ],
-    },
+  /* ── Detail popover data for each tradition card (generated in reading pipeline) ── */
+  const cardDiveMap: Record<string, CardDeepDive> = {
+    western: cardDeepDives.western,
+    vedic: cardDeepDives.vedic,
+    bazi: cardDeepDives.bazi,
+    numerology: cardDeepDives.numerology,
   };
 
   /* ── Section 1: Four system glance cards ── */
@@ -995,24 +972,31 @@ export default function ReadingContent() {
           </div>
 
           {/* ── Card detail modal ── */}
-          {activeCard && cardDetails[activeCard] && (() => {
-            const detail = cardDetails[activeCard];
+          {activeCard && cardDiveMap[activeCard] && (() => {
+            const dive = cardDiveMap[activeCard];
             const card = glanceCards.find(c => c.id === activeCard)!;
             return (
               <div
                 className="card-modal-backdrop"
                 onClick={(e) => { if (e.target === e.currentTarget) setActiveCard(null); }}
               >
-                <div className="card-modal" style={{ borderColor: `${card.accent}30` }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.6, borderRadius: '16px 16px 0 0' }} />
+                <div className="card-modal" style={{ borderColor: `${dive.accent}30` }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${dive.accent}, transparent)`, opacity: 0.6, borderRadius: '16px 16px 0 0' }} />
+
+                  {/* Yin-Yang animation for Bazi */}
+                  {activeCard === 'bazi' && (
+                    <div className="flex justify-center mb-4">
+                      <YinYang size={100} />
+                    </div>
+                  )}
 
                   {/* Header + close */}
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
-                      <span style={{ color: card.accent, fontSize: '1.5rem' }}>{card.icon}</span>
+                      <span style={{ color: dive.accent, fontSize: '1.5rem' }}>{dive.icon}</span>
                       <div>
-                        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: card.accent, letterSpacing: '0.14em' }}>{card.system}</p>
-                        <p className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>{detail.title}</p>
+                        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: dive.accent, letterSpacing: '0.14em' }}>{card.system}</p>
+                        <p className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>{dive.title}</p>
                       </div>
                     </div>
                     <button
@@ -1023,19 +1007,36 @@ export default function ReadingContent() {
                     >×</button>
                   </div>
 
-                  {/* Description */}
-                  <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
-                    {detail.description}
-                  </p>
+                  {/* Table */}
+                  <div className="rounded-xl overflow-hidden mb-6" style={{ border: '1px solid var(--line)' }}>
+                    <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+                      <tbody>
+                        {dive.table.map((row, i) => (
+                          <tr key={row.label} style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent', borderBottom: i < dive.table.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                            <td className="px-4 py-2.5 text-xs uppercase tracking-widest whitespace-nowrap" style={{ color: dive.accent, letterSpacing: '0.08em', fontSize: '0.6rem', width: '35%', verticalAlign: 'top', paddingTop: 12 }}>
+                              {row.label}
+                            </td>
+                            <td className="px-4 py-2.5" style={{ color: 'var(--text-muted)' }}>
+                              {row.value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                  {/* Detail rows */}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {detail.rows.map(row => (
-                      <div key={row.label} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
-                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.1em', fontSize: '0.6rem' }}>{row.label}</p>
-                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{row.value}</p>
-                      </div>
-                    ))}
+                  {/* Deep Dive */}
+                  <div className="rounded-xl p-5 sm:p-6" style={{ background: `${dive.accent}08`, border: `1px solid ${dive.accent}18` }}>
+                    <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: dive.accent, letterSpacing: '0.16em' }}>
+                      Deep Dive
+                    </p>
+                    <div className="space-y-4">
+                      {dive.deepDive.split('\n\n').filter(Boolean).map((para, i) => (
+                        <p key={i} className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
+                          {para}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1148,70 +1149,73 @@ export default function ReadingContent() {
         </section>
 
         {/* ══════════════════════════════════════════════════
-            Sign-up CTA — after the hook
+            GATED SECTIONS — skeleton placeholders only (no real data in DOM)
         ══════════════════════════════════════════════════ */}
-        <FadeIn>
-          <div className="signup-cta">
-            <div className="signup-cta-glow" />
-            <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>
-              ✦ Save Your Reading
-            </p>
-            <h3 className="font-display text-xl sm:text-2xl font-semibold mb-3" style={{ color: 'var(--text)' }}>
-              Your cosmic blueprint is ready
-            </h3>
-            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 480 }}>
-              Create a free account to save your full reading, track daily insights, unlock the AI Oracle, and revisit your chart anytime.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button className="signup-cta-btn primary">
+        <div className="gate-wrap">
+          {/* Fake blurred content — no real reading data */}
+          <div className="gate-blur" aria-hidden="true">
+            {['General Reading', 'Love & Relationships'].map(label => (
+              <div key={label} style={{ marginBottom: '2rem' }}>
+                <SectionDivider label={label} />
+                <div className="rounded-2xl p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--line)' }}>
+                  <div className="gate-skel" style={{ width: '40%', height: 14, marginBottom: 16 }} />
+                  <div className="gate-skel" style={{ width: '100%', height: 10, marginBottom: 10 }} />
+                  <div className="gate-skel" style={{ width: '95%', height: 10, marginBottom: 10 }} />
+                  <div className="gate-skel" style={{ width: '88%', height: 10, marginBottom: 10 }} />
+                  <div className="gate-skel" style={{ width: '72%', height: 10, marginBottom: 24 }} />
+                  <div className="gate-skel" style={{ width: '50%', height: 14, marginBottom: 16 }} />
+                  <div className="gate-skel" style={{ width: '100%', height: 10, marginBottom: 10 }} />
+                  <div className="gate-skel" style={{ width: '90%', height: 10, marginBottom: 10 }} />
+                  <div className="gate-skel" style={{ width: '60%', height: 10 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA overlay */}
+          <div className="gate-overlay">
+            <div className="gate-card">
+              <div className="gate-glow" />
+              <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>
+                ✦ There&apos;s More to Discover
+              </p>
+              <h3 className="font-display text-xl sm:text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                {name ? `${name}, unlock` : 'Unlock'} your full reading
+              </h3>
+              <p className="text-sm mb-2" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 440 }}>
+                Your Love, Career, Health &amp; Past Life analyses are waiting. Create a free account to see everything — and come back anytime.
+              </p>
+              <ul className="gate-perks">
+                <li>Full deep-dive for all 5 life areas</li>
+                <li>Save &amp; revisit your chart from any device</li>
+                <li>Daily, weekly &amp; monthly cosmic insights</li>
+                <li>Unlimited access to the AI Oracle</li>
+              </ul>
+              <button className="signup-cta-btn primary" style={{ marginTop: 8 }} onClick={handleSignup}>
                 Create Free Account
               </button>
-              <button className="signup-cta-btn secondary">
-                Continue Reading
-              </button>
+              <p className="text-xs mt-3" style={{ color: 'var(--text-dim)' }}>
+                No credit card required · Takes 10 seconds
+              </p>
             </div>
           </div>
-        </FadeIn>
+        </div>
 
-        {/* ══════════════════════════════════════════════════
-            SECTION 3 — General Reading
-        ══════════════════════════════════════════════════ */}
-        <section id="sec-general">
-          <FadeIn><SectionDivider label="General Reading" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.general} accent="#C77DFF" />
-        </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 5 — Love & Relationships
-        ══════════════════════════════════════════════════ */}
-        <section id="sec-love">
-          <FadeIn><SectionDivider label="Love & Relationships" /></FadeIn>
-          <LovePanel love={reading.deepAnalysis.love} />
-        </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 6 — Career & Finance
-        ══════════════════════════════════════════════════ */}
+        {/* Hidden until unlocked — Career, Health, Past Life */}
+        {/*
         <section id="sec-career">
           <FadeIn><SectionDivider label="Career & Finance" /></FadeIn>
           <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#9B59D6" />
         </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 7 — Health & Vitality
-        ══════════════════════════════════════════════════ */}
         <section id="sec-health">
           <FadeIn><SectionDivider label="Health & Vitality" /></FadeIn>
           <DeepPanel section={reading.deepAnalysis.health} accent="#7B3FA0" />
         </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 8 — Past Life & Soul Purpose
-        ══════════════════════════════════════════════════ */}
         <section id="sec-pastlife">
           <FadeIn><SectionDivider label="Past Life & Soul Purpose" /></FadeIn>
           <DeepPanel section={reading.deepAnalysis.pastLife} accent="#B88AE8" />
         </section>
+        */}
 
       </div>
 
@@ -1226,6 +1230,83 @@ export default function ReadingContent() {
       </footer>
 
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} name={name} reading={reading} />
+
+      {/* ── Exit-intent modal ── */}
+      {showExitModal && (
+        <div
+          className="exit-modal-backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowExitModal(false); }}
+        >
+          <div className="exit-modal">
+            <div className="gate-glow" />
+            <p className="text-3xl mb-4">🔮</p>
+            <h3 className="font-display text-lg sm:text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              Wait — your reading will be lost
+            </h3>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 380 }}>
+              If you leave now, your personalized chart disappears forever. Create a free account to save it and come back anytime.
+            </p>
+            <div className="flex flex-col gap-2.5 w-full" style={{ maxWidth: 280, margin: '0 auto' }}>
+              <button className="signup-cta-btn primary w-full" onClick={() => { setShowExitModal(false); handleSignup(); }}>
+                Save My Reading
+              </button>
+              <button
+                className="signup-cta-btn secondary w-full"
+                onClick={() => {
+                  setShowExitModal(false);
+                  router.push('/');
+                }}
+              >
+                Leave Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Signup modal ── */}
+      {showSignup && (
+        <div
+          className="exit-modal-backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSignup(false); }}
+        >
+          <div className="exit-modal" style={{ maxWidth: 400 }}>
+            <div className="gate-glow" />
+            <button
+              onClick={() => setShowSignup(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors hover:scale-110"
+              style={{ background: 'var(--surface)', color: 'var(--text-dim)', border: '1px solid var(--line)' }}
+              aria-label="Close"
+            >×</button>
+            <p className="text-2xl mb-3">✦</p>
+            <h3 className="font-display text-lg sm:text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
+              Create Your Account
+            </h3>
+            <form onSubmit={(e) => { e.preventDefault(); setShowSignup(false); }} className="flex flex-col gap-3 w-full" style={{ maxWidth: 300, margin: '0 auto' }}>
+              <input
+                type="email"
+                required
+                placeholder="Email address"
+                autoFocus
+                className="signup-input"
+              />
+              <input
+                type="password"
+                required
+                minLength={8}
+                placeholder="Create password"
+                className="signup-input"
+              />
+              <button type="submit" className="signup-cta-btn primary w-full" style={{ marginTop: 4 }}>
+                Create Account
+              </button>
+            </form>
+            <p className="text-xs mt-4" style={{ color: 'var(--text-dim)' }}>
+              No credit card required · Your reading will be saved
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

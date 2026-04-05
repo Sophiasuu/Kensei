@@ -168,6 +168,26 @@ export interface CosmicProfile {
   wisdom: number;
 }
 
+export interface CardTableRow {
+  label: string;
+  value: string;
+}
+
+export interface CardDeepDive {
+  title: string;
+  icon: string;
+  accent: string;
+  table: CardTableRow[];
+  deepDive: string;       // personalised narrative paragraph(s)
+}
+
+export interface CardDeepDives {
+  western: CardDeepDive;
+  vedic: CardDeepDive;
+  bazi: CardDeepDive;
+  numerology: CardDeepDive;
+}
+
 export interface FullReading {
   western: WesternReading;
   vedic: VedicReading;
@@ -179,4 +199,5 @@ export interface FullReading {
   monthly: PeriodInsight;
   deepAnalysis: DeepAnalysis;
   cosmicProfile: CosmicProfile;
+  cardDeepDives: CardDeepDives;
 }
