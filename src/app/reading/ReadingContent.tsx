@@ -4,8 +4,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useMemo, useState } from 'react';
 import StarField from '@/components/StarField';
 import FadeIn from '@/components/FadeIn';
+import RadarChart from '@/components/RadarChart';
 import { generateFullReading } from '@/lib/reading';
-import type { FullReading, Pillar, PeriodInsight, DeepSection } from '@/types';
+import type { FullReading, Pillar, PeriodInsight, DeepSection, LoveSection } from '@/types';
 
 /* ─────────────────────────────────────────────────────────────────
    Vertical icons — distinct glyphs for each tradition
@@ -55,7 +56,7 @@ function SectionDivider({ label }: { label: string }) {
    Bazi pillar card
 ───────────────────────────────────────────────────────────────── */
 const ELEM_COL: Record<string, string> = {
-  Wood: '#4f8f6e', Fire: '#c4583a', Earth: '#b89038', Metal: '#8098b0', Water: '#4278c0',
+  Wood: '#3d9b7a', Fire: '#c46a3a', Earth: '#b89038', Metal: '#8098b0', Water: '#4278c0',
 };
 
 function PillarCard({ pillar }: { pillar: Pillar }) {
@@ -177,11 +178,11 @@ function Accordion({
    Deep Analysis — sectional life-area panels
 ───────────────────────────────────────────────────────────────── */
 const DEEP_TABS = [
-  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#c9a052' },
-  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#c4587a' },
-  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#4499a0' },
-  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#4f8f6e' },
-  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#7a63b5' },
+  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#5dba7d' },
+  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#7ab893' },
+  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#4db88a' },
+  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#3d9b7a' },
+  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#6ecf96' },
 ] as const;
 
 type DeepTabId = typeof DEEP_TABS[number]['id'];
@@ -258,6 +259,201 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
           </p>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
             {section.guidance}
+          </p>
+        </div>
+      </FadeIn>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Love Panel — expanded premium love section
+───────────────────────────────────────────────────────────────── */
+function LovePanel({ love }: { love: LoveSection }) {
+  const accent = '#7ab893';
+  return (
+    <div className="space-y-6 mt-6">
+
+      {/* ── Overview ── */}
+      <FadeIn>
+        <div
+          className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.018)', border: `1px solid ${accent}22` }}
+        >
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.55 }} />
+          <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
+            {love.overview}
+          </p>
+        </div>
+      </FadeIn>
+
+      {/* ── Your Love Style — visual card ── */}
+      <FadeIn delay={40}>
+        <div className="love-style-card">
+          <div className="love-style-header">
+            <div className="love-style-icon">♡</div>
+            <div>
+              <p className="love-style-mode">{love.loveStyle.mode}</p>
+              <p className="love-style-subtitle">Your Love Style</p>
+            </div>
+          </div>
+          <div className="love-style-langs">
+            {love.loveStyle.languages.map((lang, i) => (
+              <span key={i} className="love-lang-tag">{lang}</span>
+            ))}
+          </div>
+          <div className="love-style-grid">
+            <div className="love-style-cell">
+              <p className="love-cell-label">Attraction Energy</p>
+              <p className="love-cell-text">{love.loveStyle.attractionEnergy}</p>
+            </div>
+            <div className="love-style-cell">
+              <p className="love-cell-label">Commitment Style</p>
+              <p className="love-cell-text">{love.loveStyle.commitmentStyle}</p>
+            </div>
+            <div className="love-style-cell">
+              <p className="love-cell-label">In Conflict</p>
+              <p className="love-cell-text">{love.loveStyle.conflictStyle}</p>
+            </div>
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* ── Your Ideal Partner — visual card ── */}
+      <FadeIn delay={80}>
+        <div className="partner-card">
+          <div className="partner-header">
+            <div className="partner-icon-wrap">
+              <span className="partner-icon">✦</span>
+            </div>
+            <div>
+              <p className="partner-archetype">{love.partnerProfile.archetype}</p>
+              <p className="partner-element">Complementary Energy: {love.partnerProfile.element}</p>
+            </div>
+          </div>
+          <p className="partner-desc">{love.partnerProfile.dynamicDescription}</p>
+          <div className="partner-traits">
+            {love.partnerProfile.traits.map((t, i) => (
+              <span key={i} className="partner-trait-tag">{t}</span>
+            ))}
+          </div>
+          <div className="partner-section">
+            <p className="partner-section-label">What They Bring</p>
+            <p className="partner-section-text">{love.partnerProfile.whatTheyBring}</p>
+          </div>
+          <div className="partner-recognition">
+            <p className="partner-section-label">How You&apos;ll Recognise Them</p>
+            <p className="partner-section-text">{love.partnerProfile.recognitionSign}</p>
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* ── Love Timeline — visual timeline ── */}
+      <FadeIn delay={120}>
+        <div className="love-timeline-card">
+          <p className="love-timeline-title">Love Timeline</p>
+          <p className="love-timeline-subtitle">Key periods shaping your romantic destiny</p>
+          <div className="love-timeline-track">
+            {love.timelines.map((tl, i) => (
+              <div key={i} className="love-tl-item">
+                <div className="love-tl-dot-wrap">
+                  <div className="love-tl-dot" />
+                  {i < love.timelines.length - 1 && <div className="love-tl-line" />}
+                </div>
+                <div className="love-tl-content">
+                  <div className="love-tl-header">
+                    <span className="love-tl-period">{tl.period}</span>
+                    <span className="love-tl-theme">{tl.theme}</span>
+                  </div>
+                  <p className="love-tl-desc">{tl.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* ── 4 Tradition Lenses ── */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        {love.lenses.map((lens, i) => (
+          <FadeIn key={lens.tradition} delay={160 + i * 55}>
+            <div
+              className="rounded-xl p-5 h-full relative overflow-hidden"
+              style={{ background: `${lens.accent}09`, border: `1px solid ${lens.accent}20` }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: lens.accent, opacity: 0.35 }} />
+              <div className="flex items-center gap-2 mb-3">
+                <span style={{ color: lens.accent, fontSize: '1rem', lineHeight: 1 }}>{lens.icon}</span>
+                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: lens.accent, letterSpacing: '0.12em' }}>
+                  {lens.tradition}
+                </p>
+              </div>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
+                {lens.insight}
+              </p>
+            </div>
+          </FadeIn>
+        ))}
+      </div>
+
+      {/* ── Compatibility & Red Flags side by side ── */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <FadeIn delay={200}>
+          <div className="love-compat-card">
+            <p className="love-mini-label" style={{ color: '#3d9b7a' }}>Compatible Energies</p>
+            <div className="love-compat-elements">
+              {love.compatibilityElements.map((el, i) => (
+                <span key={i} className="compat-el-tag">{el}</span>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+        <FadeIn delay={240}>
+          <div className="love-redflag-card">
+            <p className="love-mini-label" style={{ color: '#7ab893' }}>Patterns to Avoid</p>
+            <div className="love-redflags">
+              {love.redFlags.map((rf, i) => (
+                <div key={i} className="love-rf-item">
+                  <span className="love-rf-icon">⚠</span>
+                  <span>{rf}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+
+      {/* ── Themes ── */}
+      <FadeIn delay={260}>
+        <div
+          className="rounded-xl p-5"
+          style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}
+        >
+          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.18em' }}>
+            Key Themes
+          </p>
+          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+            {love.themes.map((theme, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span style={{ color: accent, flexShrink: 0, marginTop: 2, fontSize: '0.6rem' }}>◆</span>
+                <span className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{theme}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* ── Guidance ── */}
+      <FadeIn delay={300}>
+        <div
+          className="rounded-xl p-6"
+          style={{ background: `${accent}0e`, border: `1px solid ${accent}2c` }}
+        >
+          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: accent, letterSpacing: '0.18em' }}>
+            Guidance
+          </p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
+            {love.guidance}
           </p>
         </div>
       </FadeIn>
@@ -345,24 +541,25 @@ function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOp
   }, []);
 
   return (
-    <nav className="reading-sidenav" aria-label="Page sections">
-      <button className="sidenav-return-btn" onClick={onReturn}>← Return</button>
-      {name && <p className="sidenav-name">{name}</p>}
+    <nav className="reading-sidenav" aria-label="Page sections" style={{ fontSize: '1rem' }}>
+      <button className="sidenav-return-btn" style={{ fontSize: '0.95rem' }} onClick={onReturn}>← Return</button>
+      {name && <p className="sidenav-name" style={{ fontSize: '1.15rem' }}>{name}</p>}
       <div className="sidenav-divider" />
-      <p className="sidenav-title">Sections</p>
+      <p className="sidenav-title" style={{ fontSize: '0.8rem' }}>Sections</p>
       {NAV_SECTIONS.map(sec => (
         <button
           key={sec.id}
           className={`sidenav-item${active === sec.id ? ' active' : ''}`}
+          style={{ fontSize: '1rem' }}
           onClick={() => document.getElementById(sec.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
         >
-          <span className="sidenav-item-icon">{sec.icon}</span>
+          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.icon}</span>
           <span>{sec.label}</span>
         </button>
       ))}
       <div style={{ flex: 1 }} />
       <div className="sidenav-divider" />
-      <button className="sidenav-oracle-btn" onClick={onChatOpen}>
+      <button className="sidenav-oracle-btn" style={{ fontSize: '1rem' }} onClick={onChatOpen}>
         <span>✦</span>
         Ask Oracle
       </button>
@@ -527,34 +724,34 @@ export default function ReadingContent() {
   const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly } = reading;
   const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
 
-  const elemAccent: Record<string, string> = { Fire: '#c4583a', Earth: '#b89038', Air: '#7a63b5', Water: '#4278c0' };
-  const domColor = elemAccent[synthesis.dominantElement] ?? '#c9a052';
+  const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#6ecf96', Water: '#4278c0' };
+  const domColor = elemAccent[synthesis.dominantElement] ?? '#5dba7d';
 
   /* ── Section 1: Four system glance cards ── */
   const glanceCards = [
     {
-      id: 'western', icon: ICONS.western, accent: '#c9a052',
+      id: 'western', icon: ICONS.western, accent: '#5dba7d',
       system: 'Western', value: `${western.sunSign.symbol} ${western.sunSign.name}`,
       sub: `${western.sunSign.element} · ${western.sunSign.modality}`,
       meta: `Ruled by ${western.sunSign.rulingPlanet}`,
       traits: western.sunSign.traits.slice(0, 3),
     },
     {
-      id: 'vedic', icon: ICONS.vedic, accent: '#d06050',
+      id: 'vedic', icon: ICONS.vedic, accent: '#c49a52',
       system: 'Vedic', value: vedic.rashi.name,
       sub: `${vedic.rashi.element} · ${vedic.rashi.rulingPlanet}`,
       meta: `${vedic.nakshatra.name} Nakshatra`,
       traits: vedic.rashi.traits.slice(0, 3),
     },
     {
-      id: 'bazi', icon: ICONS.bazi, accent: '#4f8f6e',
+      id: 'bazi', icon: ICONS.bazi, accent: '#3d9b7a',
       system: 'Bazi', value: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`,
       sub: 'Day Master',
       meta: `${bazi.dayPillar.stem.chinese}${bazi.dayPillar.branch.chinese} · ${bazi.yearPillar.branch.animal} Year`,
       traits: bazi.dayMaster.traits.slice(0, 3),
     },
     {
-      id: 'numerology', icon: ICONS.numerology, accent: '#7a63b5',
+      id: 'numerology', icon: ICONS.numerology, accent: '#6ecf96',
       system: 'Numerology',
       value: numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
       sub: numerology.lifePath.keywords.slice(0, 2).join(' · '),
@@ -661,6 +858,25 @@ export default function ReadingContent() {
         </section>
 
         {/* ══════════════════════════════════════════════════
+            Cosmic Profile — Radar Chart
+        ══════════════════════════════════════════════════ */}
+        <FadeIn>
+          <div
+            className="rounded-2xl p-6 sm:p-10 relative overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--border)' }}
+          >
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }} />
+            <div className="text-center mb-6">
+              <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Cosmic Profile</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.8 }}>
+                Your strengths across six dimensions, derived from all four traditions.
+              </p>
+            </div>
+            <RadarChart profile={reading.cosmicProfile} />
+          </div>
+        </FadeIn>
+
+        {/* ══════════════════════════════════════════════════
             SECTION 2 — Summary / Synthesis
         ══════════════════════════════════════════════════ */}
         <section id="sec-synthesis">
@@ -694,10 +910,10 @@ export default function ReadingContent() {
                   </h2>
                 </div>
                 <div className="hidden sm:flex flex-wrap gap-2 justify-end">
-                  <Tag label={western.sunSign.name} accent="#c9a052" />
-                  <Tag label={vedic.rashi.name} accent="#d06050" />
-                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#4f8f6e" />
-                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#7a63b5" />
+                  <Tag label={western.sunSign.name} accent="#5dba7d" />
+                  <Tag label={vedic.rashi.name} accent="#c49a52" />
+                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#3d9b7a" />
+                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#6ecf96" />
                 </div>
               </div>
 
@@ -765,6 +981,32 @@ export default function ReadingContent() {
         </section>
 
         {/* ══════════════════════════════════════════════════
+            Sign-up CTA — after the hook
+        ══════════════════════════════════════════════════ */}
+        <FadeIn>
+          <div className="signup-cta">
+            <div className="signup-cta-glow" />
+            <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>
+              ✦ Save Your Reading
+            </p>
+            <h3 className="font-display text-xl sm:text-2xl font-semibold mb-3" style={{ color: 'var(--text)' }}>
+              Your cosmic blueprint is ready
+            </h3>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 480 }}>
+              Create a free account to save your full reading, track daily insights, unlock the AI Oracle, and revisit your chart anytime.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button className="signup-cta-btn primary">
+                Create Free Account
+              </button>
+              <button className="signup-cta-btn secondary">
+                Continue Reading
+              </button>
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* ══════════════════════════════════════════════════
             SECTION 3 — System Details (accordion)
         ══════════════════════════════════════════════════ */}
         <section id="sec-chart">
@@ -778,7 +1020,7 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.western}
                 label={`Western Astrology — ${western.sunSign.symbol} ${western.sunSign.name}`}
-                accent="#c9a052"
+                accent="#5dba7d"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
@@ -787,7 +1029,7 @@ export default function ReadingContent() {
                   <div>
                     <SectionLabel>Traits</SectionLabel>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {western.sunSign.traits.map(t => <Tag key={t} label={t} accent="#c9a052" />)}
+                      {western.sunSign.traits.map(t => <Tag key={t} label={t} accent="#5dba7d" />)}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-center text-xs">
@@ -798,7 +1040,7 @@ export default function ReadingContent() {
                     ].map(({ label, val }) => (
                       <div key={label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: 'rgba(201,160,82,0.06)', border: '1px solid rgba(201,160,82,0.18)' }}>
                         <p style={{ color: 'var(--text-dim)' }}>{label}</p>
-                        <p className="font-semibold mt-1" style={{ color: '#c9a052' }}>{val}</p>
+                        <p className="font-semibold mt-1" style={{ color: '#5dba7d' }}>{val}</p>
                       </div>
                     ))}
                   </div>
@@ -811,19 +1053,19 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.vedic}
                 label={`Vedic Astrology — ${vedic.rashi.name} · ${vedic.nakshatra.name}`}
-                accent="#d06050"
+                accent="#c49a52"
               >
                 <div className="space-y-5 pt-2">
                   <div>
-                    <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#d06050', letterSpacing: '0.15em' }}>Rashi (Sidereal Sun Sign)</p>
+                    <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#c49a52', letterSpacing: '0.15em' }}>Rashi (Sidereal Sun Sign)</p>
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                       {vedic.rashi.description}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {vedic.rashi.traits.map(t => <Tag key={t} label={t} accent="#d06050" />)}
+                      {vedic.rashi.traits.map(t => <Tag key={t} label={t} accent="#c49a52" />)}
                     </div>
                   </div>
-                  <div className="rounded-xl p-5 space-y-3" style={{ background: 'rgba(208,96,80,0.06)', border: '1px solid rgba(208,96,80,0.18)' }}>
+                  <div className="rounded-xl p-5 space-y-3" style={{ background: 'rgba(196,154,82,0.06)', border: '1px solid rgba(196,154,82,0.18)' }}>
                     <div className="flex items-baseline gap-2">
                       <p className="font-display text-base font-semibold" style={{ color: 'var(--text)' }}>{vedic.nakshatra.name}</p>
                       <p className="text-xs" style={{ color: 'var(--text-dim)' }}>· Pada {vedic.nakshatra.pada} · {vedic.nakshatra.englishMeaning}</p>
@@ -835,7 +1077,7 @@ export default function ReadingContent() {
                       {vedic.nakshatra.description}
                     </p>
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {vedic.nakshatra.qualities.map(q => <Tag key={q} label={q} accent="#d06050" />)}
+                      {vedic.nakshatra.qualities.map(q => <Tag key={q} label={q} accent="#c49a52" />)}
                     </div>
                   </div>
                 </div>
@@ -847,14 +1089,14 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.bazi}
                 label={`Bazi · ${bazi.dayMaster.polarity} ${bazi.dayMaster.element} Day Master`}
-                accent="#4f8f6e"
+                accent="#3d9b7a"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                     {bazi.dayMaster.description}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {bazi.dayMaster.traits.map(t => <Tag key={t} label={t} accent="#4f8f6e" />)}
+                    {bazi.dayMaster.traits.map(t => <Tag key={t} label={t} accent="#3d9b7a" />)}
                   </div>
                   <div>
                     <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.16em' }}>Four Pillars</p>
@@ -871,14 +1113,14 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.numerology}
                 label={`Numerology — ${numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`}`}
-                accent="#7a63b5"
+                accent="#6ecf96"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                     {numerology.lifePath.description}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {numerology.lifePath.traits.map(t => <Tag key={t} label={t} accent="#7a63b5" />)}
+                    {numerology.lifePath.traits.map(t => <Tag key={t} label={t} accent="#6ecf96" />)}
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     {[
@@ -887,8 +1129,8 @@ export default function ReadingContent() {
                       { label: 'Personal Day', value: numerology.personalDay },
                     ].map(({ label, value }) => (
                       <div key={label} className="rounded-xl p-4 relative overflow-hidden" style={{ background: 'rgba(122,99,181,0.08)', border: '1px solid rgba(122,99,181,0.22)' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: '#7a63b5', opacity: 0.4 }} />
-                        <div className="text-2xl font-bold mb-1" style={{ color: '#7a63b5' }}>{value}</div>
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: '#6ecf96', opacity: 0.4 }} />
+                        <div className="text-2xl font-bold mb-1" style={{ color: '#6ecf96' }}>{value}</div>
                         <p className="text-xs" style={{ color: 'var(--text-dim)' }}>{label}</p>
                       </div>
                     ))}
@@ -910,7 +1152,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-general">
           <FadeIn><SectionDivider label="General Reading" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.general} accent="#c9a052" />
+          <DeepPanel section={reading.deepAnalysis.general} accent="#5dba7d" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -918,7 +1160,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-love">
           <FadeIn><SectionDivider label="Love & Relationships" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.love} accent="#c4587a" />
+          <LovePanel love={reading.deepAnalysis.love} />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -926,7 +1168,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-career">
           <FadeIn><SectionDivider label="Career & Finance" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#4499a0" />
+          <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#4db88a" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -934,7 +1176,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-health">
           <FadeIn><SectionDivider label="Health & Vitality" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.health} accent="#4f8f6e" />
+          <DeepPanel section={reading.deepAnalysis.health} accent="#3d9b7a" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -942,7 +1184,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-pastlife">
           <FadeIn><SectionDivider label="Past Life & Soul Purpose" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.pastLife} accent="#7a63b5" />
+          <DeepPanel section={reading.deepAnalysis.pastLife} accent="#6ecf96" />
         </section>
 
       </div>

@@ -1,14 +1,14 @@
-import type { WesternReading, VedicReading, BaziReading, NumerologyReading, DeepAnalysis } from '@/types';
+import type { WesternReading, VedicReading, BaziReading, NumerologyReading, DeepAnalysis, LoveStyle, PartnerProfile, LoveTimeline } from '@/types';
 
 /* ── Helpers ── */
 const WE = '☽';
 const VE = 'ॐ';
 const BZ = '命';
 const NU = '∞';
-const WA = '#c9a052';
-const VA = '#d06050';
-const BA = '#4f8f6e';
-const NA = '#7a63b5';
+const WA = '#5dba7d';
+const VA = '#c49a52';
+const BA = '#3d9b7a';
+const NA = '#6ecf96';
 
 // Western element → love style
 const WEST_LOVE: Record<string, string> = {
@@ -160,6 +160,169 @@ function getNakshatraPast(name: string): string {
   return 'ancient wisdom traditions across many civilisations';
 }
 
+/* ── EXTENDED LOVE DATA ─────────────────────────────────────────────────── */
+
+// Element → love style mode
+const LOVE_STYLE_MODE: Record<string, string> = {
+  Fire:  'Passionate Initiator',
+  Earth: 'Devotional Protector',
+  Air:   'Intellectual Enchanter',
+  Water: 'Empathic Mystic',
+};
+
+// Element → attraction energy
+const ATTRACTION_ENERGY: Record<string, string> = {
+  Fire:  'Your radiance is magnetic — people feel more alive around you. You draw partners through confidence, warmth, and the unshakeable feeling that something exciting is about to happen.',
+  Earth: 'Your stability is intoxicating in a world of chaos. You draw partners through groundedness, sensuality, and the feeling of coming home.',
+  Air:   'Your mind is the aphrodisiac. You draw partners through wit, conversation, and the electric feeling that every exchange reveals something new.',
+  Water: 'Your depth is hypnotic. You draw partners through emotional attunement, mystery, and the feeling of being truly seen for the first time.',
+};
+
+// Element → commitment style
+const COMMITMENT_STYLE: Record<string, string> = {
+  Fire:  'You commit with your whole being — all in, all at once. Once your heart decides, your loyalty burns steady. But the decision itself can be swift and instinctive.',
+  Earth: 'You commit slowly but permanently. Each step forward is deliberate and considered. Once you choose, you are immovable in your devotion.',
+  Air:   'You commit through intellectual certainty first, emotional surrender second. You need to know the partnership makes sense before you let your heart lead.',
+  Water: 'You commit through emotional merging — the feeling comes first, and it comes powerfully. Your challenge is ensuring the commitment matches the depth of feeling.',
+};
+
+// Element → conflict style
+const CONFLICT_STYLE: Record<string, string> = {
+  Fire:  'You confront directly and passionately. Arguments burn hot but end quickly. Your shadow: saying things in heat that cannot be unsaid.',
+  Earth: 'You go quiet and process internally. You need time to formulate your position. Your shadow: stonewalling when overwhelmed.',
+  Air:   'You intellectualise and debate. You want to understand the logic of the disagreement. Your shadow: dismissing your partner\'s emotions as irrational.',
+  Water: 'You absorb the emotional undercurrent before responding. You feel the fight before you understand it. Your shadow: withdrawing into wounded silence.',
+};
+
+// Bazi element → love languages
+const BAZI_LOVE_LANGS: Record<string, string[]> = {
+  Wood:  ['Acts of Service', 'Quality Time', 'Words of Affirmation'],
+  Fire:  ['Physical Touch', 'Words of Affirmation', 'Quality Time'],
+  Earth: ['Acts of Service', 'Physical Touch', 'Gift Giving'],
+  Metal: ['Quality Time', 'Words of Affirmation', 'Acts of Service'],
+  Water: ['Quality Time', 'Physical Touch', 'Words of Affirmation'],
+};
+
+// Complementary partner element mapping
+const PARTNER_ELEMENT: Record<string, string> = {
+  Fire: 'Air',    // fans the flame
+  Earth: 'Water', // nourishes the ground
+  Air: 'Fire',    // shared inspiration
+  Water: 'Earth', // provides container
+};
+
+const BAZI_PARTNER_ELEMENT: Record<string, string> = {
+  Wood: 'Water',
+  Fire: 'Wood',
+  Earth: 'Fire',
+  Metal: 'Earth',
+  Water: 'Metal',
+};
+
+// Partner archetypes by element combination
+const PARTNER_ARCHETYPE: Record<string, { archetype: string; traits: string[] }> = {
+  Fire:  { archetype: 'The Steady Flame-Keeper', traits: ['Calm under pressure', 'Emotionally available', 'Quietly confident', 'Deeply loyal', 'Appreciates your intensity'] },
+  Earth: { archetype: 'The Gentle Awakener', traits: ['Spontaneous yet reliable', 'Emotionally expressive', 'Intellectually curious', 'Values tradition', 'Brings lightness to depth'] },
+  Air:   { archetype: 'The Grounded Visionary', traits: ['Emotionally intelligent', 'Creatively inspired', 'Spiritually aware', 'Action-oriented', 'Matches your wit'] },
+  Water: { archetype: 'The Luminous Anchor', traits: ['Structurally steady', 'Warm and demonstrative', 'Respects boundaries', 'Honors your sensitivity', 'Creates safety through consistency'] },
+};
+
+// Recognition signs for finding the right partner
+const RECOGNITION_SIGNS: Record<string, string> = {
+  Fire:  'You will recognise them by the calm they bring to your storm — and the fact that your fire doesn\'t intimidate them, it draws them closer. They won\'t try to dim you. They\'ll hand you more fuel.',
+  Earth: 'You will recognise them by how safe vulnerability feels in their presence. They won\'t rush you or push past your walls. They\'ll sit outside them patiently until you open the door yourself.',
+  Air:   'You will recognise them by the depth of conversation that doesn\'t exhaust you — it feeds you. They\'ll match your intellectual speed while adding emotional colour you didn\'t know you were missing.',
+  Water: 'You will recognise them by how solid the ground feels when they\'re near. Not rigid — steady. They won\'t be threatened by your emotional depth. They\'ll wade in without drowning.',
+};
+
+// Red flags by element
+const RED_FLAGS: Record<string, string[]> = {
+  Fire:  ['Partners who try to control or contain your energy', 'People who compete with you rather than complement you', 'Relationships where your enthusiasm is met with criticism'],
+  Earth: ['Partners who mistake your loyalty for permission to take you for granted', 'People who refuse to plan or commit', 'Relationships that exist only in spontaneity with no foundation'],
+  Air:   ['Partners who dismiss your need for intellectual connection', 'People who demand constant emotional intensity without respite', 'Relationships where communication is punished rather than welcomed'],
+  Water: ['Partners who invalidate your emotional experience', 'People who are emotionally unavailable or dismissive', 'Relationships that require you to shrink your sensitivity to be tolerable'],
+};
+
+// Compatibility elements
+const COMPAT_ELEMENTS: Record<string, string[]> = {
+  Fire:  ['Air', 'Fire', 'Wood'],
+  Earth: ['Water', 'Earth', 'Metal'],
+  Air:   ['Fire', 'Air', 'Water'],
+  Water: ['Earth', 'Water', 'Metal'],
+};
+
+function generateLoveStyle(westEl: string, baziEl: string): LoveStyle {
+  return {
+    mode: LOVE_STYLE_MODE[westEl] ?? 'Multi-Dimensional Lover',
+    languages: BAZI_LOVE_LANGS[baziEl] ?? ['Quality Time', 'Words of Affirmation', 'Physical Touch'],
+    attractionEnergy: ATTRACTION_ENERGY[westEl] ?? 'Your unique energy draws people who sense something rare and real in you.',
+    commitmentStyle: COMMITMENT_STYLE[westEl] ?? 'You commit in a way that is uniquely shaped by your elemental nature.',
+    conflictStyle: CONFLICT_STYLE[westEl] ?? 'You navigate conflict through the lens of your elemental instincts.',
+  };
+}
+
+function generatePartnerProfile(
+  westEl: string, baziEl: string, signName: string, dayAnimal: string
+): PartnerProfile {
+  const compEl = PARTNER_ELEMENT[westEl] ?? 'Earth';
+  const baziCompEl = BAZI_PARTNER_ELEMENT[baziEl] ?? 'Water';
+  const arch = PARTNER_ARCHETYPE[westEl] ?? PARTNER_ARCHETYPE.Earth;
+  return {
+    archetype: arch.archetype,
+    element: `${compEl} (Western) / ${baziCompEl} (Bazi)`,
+    traits: arch.traits,
+    dynamicDescription: `Your ideal partner carries ${compEl} energy that naturally complements your ${westEl} nature. In the Bazi system, ${baziCompEl} nourishes your ${baziEl} Day Master — creating a cycle of mutual support rather than depletion. They are likely someone who has experienced enough life to be genuinely self-possessed, with a quiet strength that doesn\'t need to announce itself. Your ${signName} nature will be drawn to their ${compEl === 'Fire' ? 'warmth and decisiveness' : compEl === 'Earth' ? 'groundedness and reliability' : compEl === 'Air' ? 'wit and intellectual vitality' : 'emotional depth and intuitive knowing'}.`,
+    whatTheyBring: `Where you are ${westEl === 'Fire' ? 'explosive and initiating' : westEl === 'Earth' ? 'steady and containing' : westEl === 'Air' ? 'cerebral and wide-ranging' : 'deep and emotionally attuned'}, they bring ${compEl === 'Fire' ? 'passionate momentum and enthusiasm that reignites your drive' : compEl === 'Earth' ? 'a sense of security and permanence that allows you to open fully' : compEl === 'Air' ? 'fresh perspective and communication that keeps the relationship alive' : 'emotional intelligence and depth that mirrors your inner world back to you'}. The ${dayAnimal} in your Day Branch suggests the intimate self craves ${dayAnimal === 'Rat' || dayAnimal === 'Pig' ? 'clever, resourceful companionship' : dayAnimal === 'Ox' || dayAnimal === 'Goat' ? 'gentle, nurturing presence' : dayAnimal === 'Tiger' || dayAnimal === 'Dragon' ? 'bold, adventurous spirit' : dayAnimal === 'Rabbit' || dayAnimal === 'Rooster' ? 'refined, communicative elegance' : dayAnimal === 'Snake' || dayAnimal === 'Monkey' ? 'sharp, intuitive intelligence' : 'loyal, steady warmth'}.`,
+    recognitionSign: RECOGNITION_SIGNS[westEl] ?? 'You will know them by how naturally your whole self relaxes in their presence — not performing, not managing, just being.',
+  };
+}
+
+function generateLoveTimelines(lpNum: number, personalYear: number, westEl: string): LoveTimeline[] {
+  const currentYear = new Date().getFullYear();
+  const yearPhase = personalYear % 9;
+
+  const timelines: LoveTimeline[] = [];
+
+  // Current period
+  if (yearPhase <= 2) {
+    timelines.push({
+      period: `${currentYear} – ${currentYear + 1}`,
+      theme: 'Planting Seeds',
+      description: `This is a period of initiation in love. New connections forming now carry ${westEl === 'Fire' || westEl === 'Air' ? 'electric potential — move toward what excites your mind and body simultaneously' : 'deep karmic significance — pay attention to who enters your life without effort'}. If single, the universe is arranging encounters. If partnered, a renewal phase begins.`,
+    });
+  } else if (yearPhase <= 5) {
+    timelines.push({
+      period: `${currentYear} – ${currentYear + 1}`,
+      theme: 'Building & Testing',
+      description: `Love is being tested and strengthened right now. Relationships that survive this period emerge stronger and more authentic. ${westEl === 'Earth' || westEl === 'Water' ? 'Trust the slow work of deepening — depth is being built beneath the surface' : 'Your impulse may be to accelerate or escape — resist both. The growth is in the staying.'}`,
+    });
+  } else {
+    timelines.push({
+      period: `${currentYear} – ${currentYear + 1}`,
+      theme: 'Harvest & Culmination',
+      description: `A significant love chapter is reaching its peak. Decisions made now — about commitment, about release, about what you genuinely want — carry lasting weight. Trust what you\'ve learned about yourself.`,
+    });
+  }
+
+  // Next major love window
+  const nextWindow = currentYear + (9 - yearPhase);
+  timelines.push({
+    period: `${nextWindow - 1} – ${nextWindow + 1}`,
+    theme: 'Major Love Gateway',
+    description: `A numerologically potent love window opens here. Life Path ${lpNum} enters a complete relational cycle reset — this period often coincides with meeting a significant partner, deepening an existing bond to a new level, or making a definitive choice about love that reshapes the next decade.`,
+  });
+
+  // Long-arc destiny period
+  const destinyAge = lpNum <= 3 ? '28–33' : lpNum <= 6 ? '30–36' : lpNum <= 9 ? '33–39' : '35–42';
+  timelines.push({
+    period: `Ages ${destinyAge}`,
+    theme: 'Destiny Partnership Window',
+    description: `Across all four traditions in your chart, this age range emerges as a critical love-destiny corridor. The ${westEl} soul fully matures into its relational power here. Partnerships formed or transformed during this window often carry the strongest karmic resonance and the deepest fulfilment potential.`,
+  });
+
+  return timelines;
+}
+
 // Bazi element → career
 const BAZI_CAREER: Record<string, string> = {
   Wood:  'Innovation, growth strategy, environmental work, medicine, law, and any field calling for long-range vision suit your Wood Day Master energy. You plant seeds and tend them patiently — a quality that creates extraordinary outcomes when paired with the right vision.',
@@ -201,6 +364,10 @@ export function generateDeepAnalysis(
   };
 
   /* ── LOVE ── */
+  const loveStyle = generateLoveStyle(we.element, dm.element);
+  const partnerProfile = generatePartnerProfile(we.element, dm.element, we.name, bazi.dayPillar.branch.animal);
+  const timelines = generateLoveTimelines(lpNum, numerology.personalYear, we.element);
+
   const love = {
     overview: `In love, you are ${WEST_LOVE[we.element] ?? 'multi-dimensional and layered'}. Your ${we.name} solar energy draws people in through its ${we.traits[0] ?? 'distinctive'} quality, and your ${vi.name} sidereal nature brings ${vi.traits[1] ?? 'depth'} to how you bond over time. ${LP_LOVE[lpNum] ?? LP_LOVE[1]} Your ${dm.polarity} ${dm.element} Bazi Day Master shapes your relational style at the most instinctive level. ${BAZI_LOVE[dm.element] ?? ''} The shadow to watch: ${WEST_LOVE_SHADOW[we.element] ?? 'the tendency to give love in the form you wish to receive it, rather than the form your partner actually needs'}.`,
     lenses: [
@@ -216,6 +383,11 @@ export function generateDeepAnalysis(
       `Love destiny arc aligned with Life Path ${lpNum}`,
     ],
     guidance: `The most powerful shift available to you in love right now is to close the gap between what you need and what you ask for. Your ${we.name} nature and ${lp.keywords[0] ?? 'path'} suggest that your greatest love is possible — but only when you are fully, vulnerably yourself inside it. Choose partners who are curious about your whole chart, not just the easy parts.`,
+    loveStyle,
+    partnerProfile,
+    timelines,
+    compatibilityElements: COMPAT_ELEMENTS[we.element] ?? ['Earth', 'Water', 'Metal'],
+    redFlags: RED_FLAGS[we.element] ?? RED_FLAGS.Earth,
   };
 
   /* ── CAREER / FINANCE ── */

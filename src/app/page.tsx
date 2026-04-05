@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MeshGradient } from '@paper-design/shaders-react';
 import StarField from '@/components/StarField';
 import FadeIn from '@/components/FadeIn';
 
@@ -12,7 +13,7 @@ const SYSTEMS = [
   { name: 'Numerology', sub: 'Life Path & cycles',       icon: '∞' },
 ];
 
-const SYSTEM_ACCENTS = ['#c9a052', '#d06050', '#4f8f6e', '#7a63b5'];
+const SYSTEM_ACCENTS = ['#5dba7d', '#c49a52', '#3d9b7a', '#6ecf96'];
 
 export default function HomePage() {
   const router = useRouter();
@@ -34,6 +35,14 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden">
+      {/* Mesh gradient background */}
+      <MeshGradient
+        className="!fixed inset-0 w-full h-full"
+        style={{ position: 'fixed', inset: 0, zIndex: 0 }}
+        colors={['#080e08', '#0c1a10', '#0a2618', '#1a3d2a']}
+        speed={0.3}
+        backgroundColor="#080e08"
+      />
       <StarField />
 
       <div className="relative z-10 w-full max-w-md text-center">

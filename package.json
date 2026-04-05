@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.72",
     "astronomia": "^4.2.0",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",

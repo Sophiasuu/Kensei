@@ -119,12 +119,53 @@ export interface DeepSection {
   guidance: string;
 }
 
+/* ── Extended Love section ── */
+export interface LoveTimeline {
+  period: string;       // e.g. "2025 – 2026", "Age 32-35"
+  theme: string;
+  description: string;
+}
+
+export interface PartnerProfile {
+  archetype: string;          // e.g. "The Quiet Builder"
+  element: string;            // complementary element
+  traits: string[];           // 4-5 traits
+  dynamicDescription: string; // paragraph about their personality
+  whatTheyBring: string;      // what they contribute to the relationship
+  recognitionSign: string;    // how user will know they've found them
+}
+
+export interface LoveStyle {
+  mode: string;               // e.g. "Devotional Protector"
+  languages: string[];        // love languages (3)
+  attractionEnergy: string;   // what draws people in
+  commitmentStyle: string;    // how they commit
+  conflictStyle: string;      // how they handle conflict
+}
+
+export interface LoveSection extends DeepSection {
+  loveStyle: LoveStyle;
+  partnerProfile: PartnerProfile;
+  timelines: LoveTimeline[];
+  compatibilityElements: string[];  // top 3 compatible elements
+  redFlags: string[];               // patterns to avoid
+}
+
 export interface DeepAnalysis {
   general: DeepSection;
-  love: DeepSection;
+  love: LoveSection;
   careerFinance: DeepSection;
   health: DeepSection;
   pastLife: DeepSection;
+}
+
+export interface CosmicProfile {
+  intuition: number;
+  ambition: number;
+  creativity: number;
+  discipline: number;
+  empathy: number;
+  wisdom: number;
 }
 
 export interface FullReading {
@@ -137,4 +178,5 @@ export interface FullReading {
   weekly: PeriodInsight;
   monthly: PeriodInsight;
   deepAnalysis: DeepAnalysis;
+  cosmicProfile: CosmicProfile;
 }
