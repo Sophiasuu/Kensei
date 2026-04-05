@@ -775,6 +775,7 @@ export default function ReadingContent() {
   const router = useRouter();
   const [insightTab, setInsightTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [chatOpen, setChatOpen] = useState(true);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
 
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
@@ -807,6 +808,56 @@ export default function ReadingContent() {
 
   const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#B88AE8', Water: '#4278c0' };
   const domColor = elemAccent[synthesis.dominantElement] ?? '#C77DFF';
+
+  /* ── Detail popover data for each tradition card ── */
+  const cardDetails: Record<string, { title: string; rows: { label: string; value: string }[]; description: string }> = {
+    western: {
+      title: `${western.sunSign.symbol} ${western.sunSign.name}`,
+      description: western.sunSign.description,
+      rows: [
+        { label: 'Element', value: western.sunSign.element },
+        { label: 'Modality', value: western.sunSign.modality ?? '—' },
+        { label: 'Ruling Planet', value: western.sunSign.rulingPlanet },
+        { label: 'Key Traits', value: western.sunSign.traits.join(', ') },
+      ],
+    },
+    vedic: {
+      title: vedic.rashi.name,
+      description: vedic.rashi.description,
+      rows: [
+        { label: 'Rashi Element', value: vedic.rashi.element },
+        { label: 'Ruling Planet', value: vedic.rashi.rulingPlanet },
+        { label: 'Nakshatra', value: `${vedic.nakshatra.name} — ${vedic.nakshatra.englishMeaning}` },
+        { label: 'Nakshatra Symbol', value: vedic.nakshatra.symbol },
+        { label: 'Deity', value: vedic.nakshatra.deity },
+        { label: 'Pada', value: String(vedic.nakshatra.pada) },
+        { label: 'Qualities', value: vedic.nakshatra.qualities.join(', ') },
+      ],
+    },
+    bazi: {
+      title: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element} Day Master`,
+      description: bazi.dayMaster.description,
+      rows: [
+        ...pillars.map(p => ({
+          label: p.label,
+          value: `${p.stem.chinese} ${p.stem.name} (${p.stem.element} ${p.stem.polarity}) / ${p.branch.chinese} ${p.branch.animal} (${p.branch.element})`,
+        })),
+        { label: 'Day Master Traits', value: bazi.dayMaster.traits.join(', ') },
+      ],
+    },
+    numerology: {
+      title: numerology.lifePath.isMaster ? `Master Number ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
+      description: numerology.lifePath.description,
+      rows: [
+        { label: 'Keywords', value: numerology.lifePath.keywords.join(', ') },
+        { label: 'Challenge', value: numerology.lifePath.challenge },
+        { label: 'Personal Year', value: String(numerology.personalYear) },
+        { label: 'Personal Month', value: String(numerology.personalMonth) },
+        { label: 'Personal Day', value: String(numerology.personalDay) },
+        { label: 'Traits', value: numerology.lifePath.traits.join(', ') },
+      ],
+    },
+  };
 
   /* ── Section 1: Four system glance cards ── */
   const glanceCards = [
@@ -930,9 +981,10 @@ export default function ReadingContent() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {glanceCards.map((card, i) => (
               <FadeIn key={card.id} delay={i * 80}>
-                <div
-                  className="rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden h-full"
+                <button
+                  className="rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden h-full w-full text-left transition-transform hover:scale-[1.02] cursor-pointer"
                   style={{ background: `${card.accent}15`, border: `1px solid ${card.accent}22` }}
+                  onClick={() => setActiveCard(activeCard === card.id ? null : card.id)}
                 >
                   {/* thin top accent */}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.7 }} />
@@ -971,10 +1023,60 @@ export default function ReadingContent() {
                       <span key={t} className="text-xs" style={{ color: 'var(--text-dim)' }}>— {t}</span>
                     ))}
                   </div>
-                </div>
+
+                  {/* Tap hint */}
+                  <p className="text-xs mt-1" style={{ color: card.accent, opacity: 0.5, fontSize: '0.6rem', letterSpacing: '0.1em' }}>TAP FOR DETAILS</p>
+                </button>
               </FadeIn>
             ))}
           </div>
+
+          {/* ── Card detail popover ── */}
+          {activeCard && cardDetails[activeCard] && (() => {
+            const detail = cardDetails[activeCard];
+            const card = glanceCards.find(c => c.id === activeCard)!;
+            return (
+              <FadeIn>
+                <div
+                  className="rounded-2xl p-6 sm:p-8 relative overflow-hidden mt-4"
+                  style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${card.accent}30` }}
+                >
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.5 }} />
+
+                  {/* Header + close */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <span style={{ color: card.accent, fontSize: '1.3rem' }}>{card.icon}</span>
+                      <div>
+                        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: card.accent, letterSpacing: '0.14em' }}>{card.system}</p>
+                        <p className="font-display text-lg font-semibold" style={{ color: 'var(--text)' }}>{detail.title}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveCard(null)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors"
+                      style={{ background: 'var(--surface)', color: 'var(--text-dim)', border: '1px solid var(--line)' }}
+                    >×</button>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
+                    {detail.description}
+                  </p>
+
+                  {/* Detail rows */}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {detail.rows.map(row => (
+                      <div key={row.label} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.1em', fontSize: '0.6rem' }}>{row.label}</p>
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{row.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </FadeIn>
+            );
+          })()}
         </section>
 
         {/* ══════════════════════════════════════════════════
