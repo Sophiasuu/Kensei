@@ -5,10 +5,10 @@ const WE = '☽';
 const VE = 'ॐ';
 const BZ = '命';
 const NU = '∞';
-const WA = '#5dba7d';
-const VA = '#c49a52';
-const BA = '#3d9b7a';
-const NA = '#6ecf96';
+const WA = '#C77DFF';
+const VA = '#FFD700';
+const BA = '#7B3FA0';
+const NA = '#B88AE8';
 
 // Western element → love style
 const WEST_LOVE: Record<string, string> = {

@@ -56,7 +56,7 @@ function SectionDivider({ label }: { label: string }) {
    Bazi pillar card
 ───────────────────────────────────────────────────────────────── */
 const ELEM_COL: Record<string, string> = {
-  Wood: '#3d9b7a', Fire: '#c46a3a', Earth: '#b89038', Metal: '#8098b0', Water: '#4278c0',
+  Wood: '#7B3FA0', Fire: '#c46a3a', Earth: '#b89038', Metal: '#8098b0', Water: '#4278c0',
 };
 
 function PillarCard({ pillar }: { pillar: Pillar }) {
@@ -106,7 +106,7 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
         </ul>
       </div>
 
-      <div className="rounded-xl p-4" style={{ background: 'rgba(201,160,82,0.06)', border: '1px solid rgba(201,160,82,0.15)' }}>
+      <div className="rounded-xl p-4" style={{ background: 'rgba(199,125,255,0.06)', border: '1px solid rgba(199,125,255,0.15)' }}>
         <SectionLabel>Watch for</SectionLabel>
         <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>{insight.watchFor}</p>
       </div>
@@ -178,11 +178,11 @@ function Accordion({
    Deep Analysis — sectional life-area panels
 ───────────────────────────────────────────────────────────────── */
 const DEEP_TABS = [
-  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#5dba7d' },
-  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#7ab893' },
-  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#4db88a' },
-  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#3d9b7a' },
-  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#6ecf96' },
+  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#C77DFF' },
+  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#D08AE8' },
+  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#9B59D6' },
+  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#7B3FA0' },
+  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#B88AE8' },
 ] as const;
 
 type DeepTabId = typeof DEEP_TABS[number]['id'];
@@ -270,7 +270,7 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
    Love Panel — expanded premium love section
 ───────────────────────────────────────────────────────────────── */
 function LovePanel({ love }: { love: LoveSection }) {
-  const accent = '#7ab893';
+  const accent = '#D08AE8';
   return (
     <div className="space-y-6 mt-6">
 
@@ -400,7 +400,7 @@ function LovePanel({ love }: { love: LoveSection }) {
       <div className="grid sm:grid-cols-2 gap-3">
         <FadeIn delay={200}>
           <div className="love-compat-card">
-            <p className="love-mini-label" style={{ color: '#3d9b7a' }}>Compatible Energies</p>
+            <p className="love-mini-label" style={{ color: '#7B3FA0' }}>Compatible Energies</p>
             <div className="love-compat-elements">
               {love.compatibilityElements.map((el, i) => (
                 <span key={i} className="compat-el-tag">{el}</span>
@@ -410,7 +410,7 @@ function LovePanel({ love }: { love: LoveSection }) {
         </FadeIn>
         <FadeIn delay={240}>
           <div className="love-redflag-card">
-            <p className="love-mini-label" style={{ color: '#7ab893' }}>Patterns to Avoid</p>
+            <p className="love-mini-label" style={{ color: '#D08AE8' }}>Patterns to Avoid</p>
             <div className="love-redflags">
               {love.redFlags.map((rf, i) => (
                 <div key={i} className="love-rf-item">
@@ -623,7 +623,7 @@ function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-              style={{ background: 'rgba(201,160,82,0.12)', border: '1px solid rgba(201,160,82,0.3)', color: 'var(--gold)' }}
+              style={{ background: 'rgba(199,125,255,0.12)', border: '1px solid rgba(199,125,255,0.3)', color: 'var(--gold)' }}
             >✦</div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--gold)', letterSpacing: '0.16em' }}>Cosmic Advisor</p>
@@ -724,34 +724,34 @@ export default function ReadingContent() {
   const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly } = reading;
   const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
 
-  const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#6ecf96', Water: '#4278c0' };
-  const domColor = elemAccent[synthesis.dominantElement] ?? '#5dba7d';
+  const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#B88AE8', Water: '#4278c0' };
+  const domColor = elemAccent[synthesis.dominantElement] ?? '#C77DFF';
 
   /* ── Section 1: Four system glance cards ── */
   const glanceCards = [
     {
-      id: 'western', icon: ICONS.western, accent: '#5dba7d',
+      id: 'western', icon: ICONS.western, accent: '#C77DFF',
       system: 'Western', value: `${western.sunSign.symbol} ${western.sunSign.name}`,
       sub: `${western.sunSign.element} · ${western.sunSign.modality}`,
       meta: `Ruled by ${western.sunSign.rulingPlanet}`,
       traits: western.sunSign.traits.slice(0, 3),
     },
     {
-      id: 'vedic', icon: ICONS.vedic, accent: '#c49a52',
+      id: 'vedic', icon: ICONS.vedic, accent: '#FFD700',
       system: 'Vedic', value: vedic.rashi.name,
       sub: `${vedic.rashi.element} · ${vedic.rashi.rulingPlanet}`,
       meta: `${vedic.nakshatra.name} Nakshatra`,
       traits: vedic.rashi.traits.slice(0, 3),
     },
     {
-      id: 'bazi', icon: ICONS.bazi, accent: '#3d9b7a',
+      id: 'bazi', icon: ICONS.bazi, accent: '#7B3FA0',
       system: 'Bazi', value: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`,
       sub: 'Day Master',
       meta: `${bazi.dayPillar.stem.chinese}${bazi.dayPillar.branch.chinese} · ${bazi.yearPillar.branch.animal} Year`,
       traits: bazi.dayMaster.traits.slice(0, 3),
     },
     {
-      id: 'numerology', icon: ICONS.numerology, accent: '#6ecf96',
+      id: 'numerology', icon: ICONS.numerology, accent: '#B88AE8',
       system: 'Numerology',
       value: numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
       sub: numerology.lifePath.keywords.slice(0, 2).join(' · '),
@@ -910,10 +910,10 @@ export default function ReadingContent() {
                   </h2>
                 </div>
                 <div className="hidden sm:flex flex-wrap gap-2 justify-end">
-                  <Tag label={western.sunSign.name} accent="#5dba7d" />
-                  <Tag label={vedic.rashi.name} accent="#c49a52" />
-                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#3d9b7a" />
-                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#6ecf96" />
+                  <Tag label={western.sunSign.name} accent="#C77DFF" />
+                  <Tag label={vedic.rashi.name} accent="#FFD700" />
+                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#7B3FA0" />
+                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#B88AE8" />
                 </div>
               </div>
 
@@ -1020,7 +1020,7 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.western}
                 label={`Western Astrology — ${western.sunSign.symbol} ${western.sunSign.name}`}
-                accent="#5dba7d"
+                accent="#C77DFF"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
@@ -1029,7 +1029,7 @@ export default function ReadingContent() {
                   <div>
                     <SectionLabel>Traits</SectionLabel>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {western.sunSign.traits.map(t => <Tag key={t} label={t} accent="#5dba7d" />)}
+                      {western.sunSign.traits.map(t => <Tag key={t} label={t} accent="#C77DFF" />)}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-center text-xs">
@@ -1038,9 +1038,9 @@ export default function ReadingContent() {
                       { label: 'Modality', val: western.sunSign.modality ?? '—' },
                       { label: 'Ruler', val: western.sunSign.rulingPlanet },
                     ].map(({ label, val }) => (
-                      <div key={label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: 'rgba(201,160,82,0.06)', border: '1px solid rgba(201,160,82,0.18)' }}>
+                      <div key={label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: 'rgba(199,125,255,0.06)', border: '1px solid rgba(199,125,255,0.18)' }}>
                         <p style={{ color: 'var(--text-dim)' }}>{label}</p>
-                        <p className="font-semibold mt-1" style={{ color: '#5dba7d' }}>{val}</p>
+                        <p className="font-semibold mt-1" style={{ color: '#C77DFF' }}>{val}</p>
                       </div>
                     ))}
                   </div>
@@ -1053,19 +1053,19 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.vedic}
                 label={`Vedic Astrology — ${vedic.rashi.name} · ${vedic.nakshatra.name}`}
-                accent="#c49a52"
+                accent="#FFD700"
               >
                 <div className="space-y-5 pt-2">
                   <div>
-                    <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#c49a52', letterSpacing: '0.15em' }}>Rashi (Sidereal Sun Sign)</p>
+                    <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#FFD700', letterSpacing: '0.15em' }}>Rashi (Sidereal Sun Sign)</p>
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                       {vedic.rashi.description}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {vedic.rashi.traits.map(t => <Tag key={t} label={t} accent="#c49a52" />)}
+                      {vedic.rashi.traits.map(t => <Tag key={t} label={t} accent="#FFD700" />)}
                     </div>
                   </div>
-                  <div className="rounded-xl p-5 space-y-3" style={{ background: 'rgba(196,154,82,0.06)', border: '1px solid rgba(196,154,82,0.18)' }}>
+                  <div className="rounded-xl p-5 space-y-3" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.18)' }}>
                     <div className="flex items-baseline gap-2">
                       <p className="font-display text-base font-semibold" style={{ color: 'var(--text)' }}>{vedic.nakshatra.name}</p>
                       <p className="text-xs" style={{ color: 'var(--text-dim)' }}>· Pada {vedic.nakshatra.pada} · {vedic.nakshatra.englishMeaning}</p>
@@ -1077,7 +1077,7 @@ export default function ReadingContent() {
                       {vedic.nakshatra.description}
                     </p>
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {vedic.nakshatra.qualities.map(q => <Tag key={q} label={q} accent="#c49a52" />)}
+                      {vedic.nakshatra.qualities.map(q => <Tag key={q} label={q} accent="#FFD700" />)}
                     </div>
                   </div>
                 </div>
@@ -1089,14 +1089,14 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.bazi}
                 label={`Bazi · ${bazi.dayMaster.polarity} ${bazi.dayMaster.element} Day Master`}
-                accent="#3d9b7a"
+                accent="#7B3FA0"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                     {bazi.dayMaster.description}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {bazi.dayMaster.traits.map(t => <Tag key={t} label={t} accent="#3d9b7a" />)}
+                    {bazi.dayMaster.traits.map(t => <Tag key={t} label={t} accent="#7B3FA0" />)}
                   </div>
                   <div>
                     <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.16em' }}>Four Pillars</p>
@@ -1113,14 +1113,14 @@ export default function ReadingContent() {
               <Accordion
                 icon={ICONS.numerology}
                 label={`Numerology — ${numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`}`}
-                accent="#6ecf96"
+                accent="#B88AE8"
               >
                 <div className="space-y-5 pt-2">
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
                     {numerology.lifePath.description}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {numerology.lifePath.traits.map(t => <Tag key={t} label={t} accent="#6ecf96" />)}
+                    {numerology.lifePath.traits.map(t => <Tag key={t} label={t} accent="#B88AE8" />)}
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     {[
@@ -1128,14 +1128,14 @@ export default function ReadingContent() {
                       { label: 'Personal Month', value: numerology.personalMonth },
                       { label: 'Personal Day', value: numerology.personalDay },
                     ].map(({ label, value }) => (
-                      <div key={label} className="rounded-xl p-4 relative overflow-hidden" style={{ background: 'rgba(122,99,181,0.08)', border: '1px solid rgba(122,99,181,0.22)' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: '#6ecf96', opacity: 0.4 }} />
-                        <div className="text-2xl font-bold mb-1" style={{ color: '#6ecf96' }}>{value}</div>
+                      <div key={label} className="rounded-xl p-4 relative overflow-hidden" style={{ background: 'rgba(123,63,160,0.08)', border: '1px solid rgba(123,63,160,0.22)' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: '#B88AE8', opacity: 0.4 }} />
+                        <div className="text-2xl font-bold mb-1" style={{ color: '#B88AE8' }}>{value}</div>
                         <p className="text-xs" style={{ color: 'var(--text-dim)' }}>{label}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="rounded-xl p-4" style={{ background: 'rgba(122,99,181,0.06)', border: '1px solid rgba(122,99,181,0.18)' }}>
+                  <div className="rounded-xl p-4" style={{ background: 'rgba(123,63,160,0.06)', border: '1px solid rgba(123,63,160,0.18)' }}>
                     <SectionLabel>The Shadow</SectionLabel>
                     <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>
                       {numerology.lifePath.challenge}
@@ -1152,7 +1152,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-general">
           <FadeIn><SectionDivider label="General Reading" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.general} accent="#5dba7d" />
+          <DeepPanel section={reading.deepAnalysis.general} accent="#C77DFF" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -1168,7 +1168,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-career">
           <FadeIn><SectionDivider label="Career & Finance" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#4db88a" />
+          <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#9B59D6" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -1176,7 +1176,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-health">
           <FadeIn><SectionDivider label="Health & Vitality" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.health} accent="#3d9b7a" />
+          <DeepPanel section={reading.deepAnalysis.health} accent="#7B3FA0" />
         </section>
 
         {/* ══════════════════════════════════════════════════
@@ -1184,7 +1184,7 @@ export default function ReadingContent() {
         ══════════════════════════════════════════════════ */}
         <section id="sec-pastlife">
           <FadeIn><SectionDivider label="Past Life & Soul Purpose" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.pastLife} accent="#6ecf96" />
+          <DeepPanel section={reading.deepAnalysis.pastLife} accent="#B88AE8" />
         </section>
 
       </div>
