@@ -1079,3 +1079,109 @@ body {
   flex-shrink: 0;
   margin-top: 3px;
 }
+
+/* ─── Language Globe Selector ───────────────────────────────────────────── */
+.lang-globe-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.lang-globe-btn:hover {
+  background: var(--surface);
+  border-color: rgba(199,125,255,0.25);
+}
+.lang-globe-label {
+  letter-spacing: 0.04em;
+}
+.lang-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 6px;
+  min-width: 160px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: rgba(26,10,46,0.98);
+  border: 1px solid rgba(199,125,255,0.18);
+  border-radius: 10px;
+  padding: 4px;
+  z-index: 50;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: langDropIn 0.15s ease;
+}
+@keyframes langDropIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+.lang-option:hover { background: var(--surface); }
+.lang-option.active {
+  background: rgba(199,125,255,0.12);
+  color: var(--gold);
+}
+/* Make dropdown open upward in sidenav, downward in mobile top bar */
+.reading-topnav-mobile .lang-dropdown {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 6px;
+}
+
+/* ─── Card Detail Modal ─────────────────────────────────────────────────── */
+.card-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 5, 20, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: modalFadeIn 0.25s ease;
+  padding: 24px;
+}
+.card-modal {
+  position: relative;
+  background: rgba(26, 10, 46, 0.97);
+  border: 1px solid;
+  border-radius: 16px;
+  padding: 28px 28px 32px;
+  max-width: 580px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(123, 63, 160, 0.08);
+  animation: modalSlideIn 0.3s ease;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 640px) {
+  .card-modal { padding: 20px 18px 24px; }
+}

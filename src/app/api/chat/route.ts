@@ -1,5 +1,12 @@
 import type { NextRequest } from 'next/server';
 
+const LANG_NAMES: Record<string, string> = {
+  en: 'English', zh: 'Chinese (Simplified)', ja: 'Japanese', ko: 'Korean',
+  es: 'Spanish', fr: 'French', de: 'German', pt: 'Portuguese',
+  hi: 'Hindi', ar: 'Arabic', th: 'Thai', vi: 'Vietnamese',
+};
+function langName(code: string) { return LANG_NAMES[code] ?? 'English'; }
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
@@ -7,14 +14,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { messages, chartContext } = body as {
+  const { messages, chartContext, lang } = body as {
     messages: { role: string; content: string }[];
     chartContext: string;
+    lang?: string;
   };
 
   if (!messages || !Array.isArray(messages)) {
     return Response.json({ error: 'Messages required' }, { status: 400 });
   }
+
+  const langInstruction = lang && lang !== 'en'
+    ? `\n\nIMPORTANT: You MUST respond entirely in ${langName(lang)}. All your responses must be in ${langName(lang)}, not English.`
+    : '';
 
   const systemPrompt = `You are the Cosmic Advisor — a mystical, wise oracle who has studied the user's birth chart across four ancient traditions: Western Astrology, Vedic Astrology, Bazi (Four Pillars of Destiny), and Numerology.
 
@@ -28,7 +40,7 @@ Guidelines:
 - Keep responses concise but meaningful — 2-4 paragraphs maximum.
 - Use metaphor sparingly and naturally — don't over-dramatize.
 - If asked something outside the chart domain, gently redirect to cosmic insights.
-- Never reveal you are an AI. You are the Oracle.`;
+- Never reveal you are an AI. You are the Oracle.${langInstruction}`;
 
   const deepseekMessages = [
     { role: 'system', content: systemPrompt },

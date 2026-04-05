@@ -7,6 +7,8 @@ import StarField from '@/components/StarField';
 import FadeIn from '@/components/FadeIn';
 import Constellations from '@/components/Constellations';
 
+import LanguageSelector from '@/components/LanguageSelector';
+
 const SYSTEMS = [
   { name: 'Western',    sub: 'Sun sign & archetypes',    icon: '☽' },
   { name: 'Vedic',      sub: 'Rashi & Nakshatra',        icon: 'ॐ' },
@@ -36,6 +38,11 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-8 sm:pt-16 overflow-hidden">
+      {/* Language globe — top-right */}
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
+        <LanguageSelector compact />
+      </div>
+
       {/* Mesh gradient background */}
       <MeshGradient
         className="!fixed inset-0 w-full h-full"

@@ -6,7 +6,9 @@ import StarField from '@/components/StarField';
 import FadeIn from '@/components/FadeIn';
 import RadarChart from '@/components/RadarChart';
 import { generateFullReading } from '@/lib/reading';
-import type { FullReading, Pillar, PeriodInsight, DeepSection, LoveSection } from '@/types';
+import { useLanguage } from '@/context/LanguageContext';
+import LanguageSelector from '@/components/LanguageSelector';
+import type { FullReading, PeriodInsight, DeepSection, LoveSection } from '@/types';
 
 /* ─────────────────────────────────────────────────────────────────
    Vertical icons — distinct glyphs for each tradition
@@ -53,31 +55,6 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   Bazi pillar card
-───────────────────────────────────────────────────────────────── */
-const ELEM_COL: Record<string, string> = {
-  Wood: '#7B3FA0', Fire: '#c46a3a', Earth: '#b89038', Metal: '#8098b0', Water: '#4278c0',
-};
-
-function PillarCard({ pillar }: { pillar: Pillar }) {
-  const col = ELEM_COL[pillar.stem.element] ?? '#888';
-  return (
-    <div
-      className="rounded-xl p-3 text-center relative overflow-hidden"
-      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--line)' }}
-    >
-      {/* thin top accent */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: col, opacity: 0.5 }} />
-      <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--text-dim)' }}>{pillar.label}</p>
-      <div className="text-3xl leading-none mb-0.5" style={{ fontFamily: 'serif', color: col }}>{pillar.stem.chinese}</div>
-      <div className="text-3xl leading-none mb-2" style={{ fontFamily: 'serif', color: 'rgba(255,255,255,0.25)' }}>{pillar.branch.chinese}</div>
-      <p className="text-xs font-semibold" style={{ color: col }}>{pillar.stem.polarity} {pillar.stem.element}</p>
-      <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>{pillar.branch.animal}</p>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
    Insight panel (daily / weekly / monthly)
 ───────────────────────────────────────────────────────────────── */
 function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; personalYear: number }) {
@@ -115,59 +92,6 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
         <div className="rounded-xl p-4 text-center" style={{ background: 'var(--gold-dim)', border: '1px solid var(--border-gold)' }}>
           <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--gold)' }}>Affirmation</p>
           <p className="font-display text-sm italic" style={{ color: 'var(--gold-light)' }}>&ldquo;{insight.affirmation}&rdquo;</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Deep-dive accordion
-───────────────────────────────────────────────────────────────── */
-function Accordion({
-  icon, label, accent, children,
-}: {
-  icon: string; label: string; accent: string; children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        borderRadius: 12,
-        border: `1px solid ${accent}22`,
-        background: 'rgba(255,255,255,0.018)',
-      }}
-    >
-      {/* thin top accent line */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.6 }} />
-
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-6 py-4 text-left transition-colors"
-        style={{ background: open ? `${accent}09` : 'transparent' }}
-      >
-        {/* vertical icon */}
-        <span
-          className="v-icon flex-shrink-0"
-          style={{ color: accent, fontFamily: icon === ICONS.vedic ? 'serif' : 'inherit', width: 28, textAlign: 'center' }}
-        >
-          {icon}
-        </span>
-        <span className="text-sm font-semibold tracking-wide flex-1" style={{ color: open ? accent : 'var(--text)', letterSpacing: '0.03em' }}>
-          {label}
-        </span>
-        <span
-          className="text-base leading-none transition-transform duration-300"
-          style={{ color: accent, transform: open ? 'rotate(45deg)' : 'none', display: 'inline-block' }}
-        >
-          +
-        </span>
-      </button>
-
-      {open && (
-        <div className="px-6 pb-6 pt-2" style={{ borderTop: `1px solid ${accent}12` }}>
-          {children}
         </div>
       )}
     </div>
@@ -519,7 +443,6 @@ function DeepAnalysisSection({
 const NAV_SECTIONS = [
   { id: 'sec-overview',  label: 'Overview',      icon: '✦' },
   { id: 'sec-synthesis', label: 'Synthesis',      icon: '◈' },
-  { id: 'sec-chart',     label: 'Chart Details',  icon: '☽' },
   { id: 'sec-general',   label: 'General',        icon: '✧' },
   { id: 'sec-love',      label: 'Love',           icon: '♡' },
   { id: 'sec-career',    label: 'Career',         icon: '◈' },
@@ -563,6 +486,9 @@ function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOp
         <span>✦</span>
         Ask Oracle
       </button>
+      <div style={{ marginTop: 8 }}>
+        <LanguageSelector dropUp />
+      </div>
     </nav>
   );
 }
@@ -596,6 +522,7 @@ function renderMarkdown(text: string) {
 }
 
 function ChatPanel({ open, onClose, name, reading }: { open: boolean; onClose: () => void; name: string | null; reading: FullReading }) {
+  const { lang } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: 'oracle',
     text: `Greetings${name ? `, ${name}` : ''}. I have read your chart across four ancient traditions — Western, Vedic, Bazi, and Numerology. Ask me anything about your cosmic blueprint.`,
@@ -649,7 +576,7 @@ function ChatPanel({ open, onClose, name, reading }: { open: boolean; onClose: (
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, chartContext }),
+        body: JSON.stringify({ messages: apiMessages, chartContext, lang }),
       });
 
       if (!res.ok || !res.body) {
@@ -777,6 +704,14 @@ export default function ReadingContent() {
   const [chatOpen, setChatOpen] = useState(true);
   const [activeCard, setActiveCard] = useState<string | null>(null);
 
+  /* Close modal on Escape */
+  useEffect(() => {
+    if (!activeCard) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActiveCard(null); };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [activeCard]);
+
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
   const tob = searchParams.get('tob') ?? undefined;
@@ -809,6 +744,23 @@ export default function ReadingContent() {
   const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#B88AE8', Water: '#4278c0' };
   const domColor = elemAccent[synthesis.dominantElement] ?? '#C77DFF';
 
+  /* ── Western sign extra data ── */
+  const westernExtras: Record<string, { house: string; houseTheme: string; luckyDay: string; luckyNumbers: string; compatible: string; opposite: string; bodyArea: string; season: string; tarot: string }> = {
+    Aries:       { house: '1st House', houseTheme: 'Self, Identity & Appearance', luckyDay: 'Tuesday', luckyNumbers: '1, 9', compatible: 'Leo, Sagittarius, Gemini', opposite: 'Libra', bodyArea: 'Head & Face', season: 'Early Spring', tarot: 'The Emperor' },
+    Taurus:      { house: '2nd House', houseTheme: 'Values, Possessions & Self-Worth', luckyDay: 'Friday', luckyNumbers: '2, 6', compatible: 'Virgo, Capricorn, Cancer', opposite: 'Scorpio', bodyArea: 'Throat & Neck', season: 'Late Spring', tarot: 'The Hierophant' },
+    Gemini:      { house: '3rd House', houseTheme: 'Communication, Learning & Siblings', luckyDay: 'Wednesday', luckyNumbers: '3, 5', compatible: 'Libra, Aquarius, Aries', opposite: 'Sagittarius', bodyArea: 'Arms, Hands & Lungs', season: 'Early Summer', tarot: 'The Lovers' },
+    Cancer:      { house: '4th House', houseTheme: 'Home, Family & Emotional Roots', luckyDay: 'Monday', luckyNumbers: '2, 7', compatible: 'Scorpio, Pisces, Taurus', opposite: 'Capricorn', bodyArea: 'Chest & Stomach', season: 'Mid Summer', tarot: 'The Chariot' },
+    Leo:         { house: '5th House', houseTheme: 'Creativity, Romance & Self-Expression', luckyDay: 'Sunday', luckyNumbers: '1, 4', compatible: 'Aries, Sagittarius, Libra', opposite: 'Aquarius', bodyArea: 'Heart & Spine', season: 'Late Summer', tarot: 'Strength' },
+    Virgo:       { house: '6th House', houseTheme: 'Health, Service & Daily Routines', luckyDay: 'Wednesday', luckyNumbers: '5, 6', compatible: 'Taurus, Capricorn, Cancer', opposite: 'Pisces', bodyArea: 'Digestive System', season: 'Early Autumn', tarot: 'The Hermit' },
+    Libra:       { house: '7th House', houseTheme: 'Partnerships, Marriage & Contracts', luckyDay: 'Friday', luckyNumbers: '4, 6', compatible: 'Gemini, Aquarius, Leo', opposite: 'Aries', bodyArea: 'Lower Back & Kidneys', season: 'Mid Autumn', tarot: 'Justice' },
+    Scorpio:     { house: '8th House', houseTheme: 'Transformation, Sexuality & Shared Resources', luckyDay: 'Tuesday', luckyNumbers: '8, 9', compatible: 'Cancer, Pisces, Virgo', opposite: 'Taurus', bodyArea: 'Reproductive System', season: 'Late Autumn', tarot: 'Death' },
+    Sagittarius: { house: '9th House', houseTheme: 'Philosophy, Travel & Higher Learning', luckyDay: 'Thursday', luckyNumbers: '3, 7', compatible: 'Aries, Leo, Aquarius', opposite: 'Gemini', bodyArea: 'Thighs & Liver', season: 'Early Winter', tarot: 'Temperance' },
+    Capricorn:   { house: '10th House', houseTheme: 'Career, Ambition & Public Image', luckyDay: 'Saturday', luckyNumbers: '4, 8', compatible: 'Taurus, Virgo, Scorpio', opposite: 'Cancer', bodyArea: 'Bones, Knees & Joints', season: 'Mid Winter', tarot: 'The Devil' },
+    Aquarius:    { house: '11th House', houseTheme: 'Community, Innovation & Future Vision', luckyDay: 'Saturday', luckyNumbers: '4, 7', compatible: 'Gemini, Libra, Sagittarius', opposite: 'Leo', bodyArea: 'Ankles & Circulation', season: 'Late Winter', tarot: 'The Star' },
+    Pisces:      { house: '12th House', houseTheme: 'Spirituality, Dreams & the Unconscious', luckyDay: 'Thursday', luckyNumbers: '3, 7', compatible: 'Cancer, Scorpio, Taurus', opposite: 'Virgo', bodyArea: 'Feet & Lymphatic System', season: 'Late Winter', tarot: 'The Moon' },
+  };
+  const wExtra = westernExtras[western.sunSign.name] ?? westernExtras['Aries'];
+
   /* ── Detail popover data for each tradition card ── */
   const cardDetails: Record<string, { title: string; rows: { label: string; value: string }[]; description: string }> = {
     western: {
@@ -818,6 +770,14 @@ export default function ReadingContent() {
         { label: 'Element', value: western.sunSign.element },
         { label: 'Modality', value: western.sunSign.modality ?? '—' },
         { label: 'Ruling Planet', value: western.sunSign.rulingPlanet },
+        { label: 'Natural House', value: `${wExtra.house} — ${wExtra.houseTheme}` },
+        { label: 'Compatible Signs', value: wExtra.compatible },
+        { label: 'Opposite Sign', value: wExtra.opposite },
+        { label: 'Tarot Card', value: wExtra.tarot },
+        { label: 'Body Rulership', value: wExtra.bodyArea },
+        { label: 'Lucky Day', value: wExtra.luckyDay },
+        { label: 'Lucky Numbers', value: wExtra.luckyNumbers },
+        { label: 'Season', value: wExtra.season },
         { label: 'Key Traits', value: western.sunSign.traits.join(', ') },
       ],
     },
@@ -906,9 +866,12 @@ export default function ReadingContent() {
         >
           ← Return
         </button>
-        {name && (
-          <span className="font-display text-sm tracking-widest" style={{ color: 'var(--text-muted)' }}>{name}</span>
-        )}
+        <div className="flex items-center gap-3">
+          {name && (
+            <span className="font-display text-sm tracking-widest" style={{ color: 'var(--text-muted)' }}>{name}</span>
+          )}
+          <LanguageSelector compact />
+        </div>
         <button
           className="chat-fab-mobile"
           onClick={() => setChatOpen(true)}
@@ -1031,50 +994,51 @@ export default function ReadingContent() {
             ))}
           </div>
 
-          {/* ── Card detail popover ── */}
+          {/* ── Card detail modal ── */}
           {activeCard && cardDetails[activeCard] && (() => {
             const detail = cardDetails[activeCard];
             const card = glanceCards.find(c => c.id === activeCard)!;
             return (
-              <FadeIn>
-                <div
-                  className="rounded-2xl p-6 sm:p-8 relative overflow-hidden mt-4"
-                  style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${card.accent}30` }}
-                >
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.5 }} />
+              <div
+                className="card-modal-backdrop"
+                onClick={(e) => { if (e.target === e.currentTarget) setActiveCard(null); }}
+              >
+                <div className="card-modal" style={{ borderColor: `${card.accent}30` }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.6, borderRadius: '16px 16px 0 0' }} />
 
                   {/* Header + close */}
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
-                      <span style={{ color: card.accent, fontSize: '1.3rem' }}>{card.icon}</span>
+                      <span style={{ color: card.accent, fontSize: '1.5rem' }}>{card.icon}</span>
                       <div>
                         <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: card.accent, letterSpacing: '0.14em' }}>{card.system}</p>
-                        <p className="font-display text-lg font-semibold" style={{ color: 'var(--text)' }}>{detail.title}</p>
+                        <p className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>{detail.title}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setActiveCard(null)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors hover:scale-110"
                       style={{ background: 'var(--surface)', color: 'var(--text-dim)', border: '1px solid var(--line)' }}
+                      aria-label="Close"
                     >×</button>
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
+                  <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
                     {detail.description}
                   </p>
 
                   {/* Detail rows */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     {detail.rows.map(row => (
-                      <div key={row.label} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+                      <div key={row.label} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
                         <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.1em', fontSize: '0.6rem' }}>{row.label}</p>
                         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{row.value}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-              </FadeIn>
+              </div>
             );
           })()}
         </section>
@@ -1210,148 +1174,7 @@ export default function ReadingContent() {
         </FadeIn>
 
         {/* ══════════════════════════════════════════════════
-            SECTION 3 — System Details (accordion)
-        ══════════════════════════════════════════════════ */}
-        <section id="sec-chart">
-          <FadeIn>
-            <SectionDivider label="Chart Details" />
-          </FadeIn>
-
-          <div className="space-y-3">
-            {/* Western */}
-            <FadeIn delay={0}>
-              <Accordion
-                icon={ICONS.western}
-                label={`Western Astrology — ${western.sunSign.symbol} ${western.sunSign.name}`}
-                accent="#C77DFF"
-              >
-                <div className="space-y-5 pt-2">
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
-                    {western.sunSign.description}
-                  </p>
-                  <div>
-                    <SectionLabel>Traits</SectionLabel>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {western.sunSign.traits.map(t => <Tag key={t} label={t} accent="#C77DFF" />)}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center text-xs">
-                    {[
-                      { label: 'Element', val: western.sunSign.element },
-                      { label: 'Modality', val: western.sunSign.modality ?? '—' },
-                      { label: 'Ruler', val: western.sunSign.rulingPlanet },
-                    ].map(({ label, val }) => (
-                      <div key={label} className="rounded-xl p-3 relative overflow-hidden" style={{ background: 'rgba(199,125,255,0.06)', border: '1px solid rgba(199,125,255,0.18)' }}>
-                        <p style={{ color: 'var(--text-dim)' }}>{label}</p>
-                        <p className="font-semibold mt-1" style={{ color: '#C77DFF' }}>{val}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Accordion>
-            </FadeIn>
-
-            {/* Vedic */}
-            <FadeIn delay={60}>
-              <Accordion
-                icon={ICONS.vedic}
-                label={`Vedic Astrology — ${vedic.rashi.name} · ${vedic.nakshatra.name}`}
-                accent="#FFD700"
-              >
-                <div className="space-y-5 pt-2">
-                  <div>
-                    <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#FFD700', letterSpacing: '0.15em' }}>Rashi (Sidereal Sun Sign)</p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
-                      {vedic.rashi.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {vedic.rashi.traits.map(t => <Tag key={t} label={t} accent="#FFD700" />)}
-                    </div>
-                  </div>
-                  <div className="rounded-xl p-5 space-y-3" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.18)' }}>
-                    <div className="flex items-baseline gap-2">
-                      <p className="font-display text-base font-semibold" style={{ color: 'var(--text)' }}>{vedic.nakshatra.name}</p>
-                      <p className="text-xs" style={{ color: 'var(--text-dim)' }}>· Pada {vedic.nakshatra.pada} · {vedic.nakshatra.englishMeaning}</p>
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
-                      Deity: {vedic.nakshatra.deity} · Ruling planet: {vedic.nakshatra.ruling}
-                    </p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
-                      {vedic.nakshatra.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {vedic.nakshatra.qualities.map(q => <Tag key={q} label={q} accent="#FFD700" />)}
-                    </div>
-                  </div>
-                </div>
-              </Accordion>
-            </FadeIn>
-
-            {/* Bazi */}
-            <FadeIn delay={120}>
-              <Accordion
-                icon={ICONS.bazi}
-                label={`Bazi · ${bazi.dayMaster.polarity} ${bazi.dayMaster.element} Day Master`}
-                accent="#7B3FA0"
-              >
-                <div className="space-y-5 pt-2">
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
-                    {bazi.dayMaster.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {bazi.dayMaster.traits.map(t => <Tag key={t} label={t} accent="#7B3FA0" />)}
-                  </div>
-                  <div>
-                    <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.16em' }}>Four Pillars</p>
-                    <div className={`grid gap-2 ${pillars.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
-                      {pillars.map(p => <PillarCard key={p.label} pillar={p} />)}
-                    </div>
-                  </div>
-                </div>
-              </Accordion>
-            </FadeIn>
-
-            {/* Numerology */}
-            <FadeIn delay={180}>
-              <Accordion
-                icon={ICONS.numerology}
-                label={`Numerology — ${numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`}`}
-                accent="#B88AE8"
-              >
-                <div className="space-y-5 pt-2">
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}>
-                    {numerology.lifePath.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {numerology.lifePath.traits.map(t => <Tag key={t} label={t} accent="#B88AE8" />)}
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    {[
-                      { label: 'Personal Year', value: numerology.personalYear },
-                      { label: 'Personal Month', value: numerology.personalMonth },
-                      { label: 'Personal Day', value: numerology.personalDay },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="rounded-xl p-4 relative overflow-hidden" style={{ background: 'rgba(123,63,160,0.08)', border: '1px solid rgba(123,63,160,0.22)' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: '#B88AE8', opacity: 0.4 }} />
-                        <div className="text-2xl font-bold mb-1" style={{ color: '#B88AE8' }}>{value}</div>
-                        <p className="text-xs" style={{ color: 'var(--text-dim)' }}>{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="rounded-xl p-4" style={{ background: 'rgba(123,63,160,0.06)', border: '1px solid rgba(123,63,160,0.18)' }}>
-                    <SectionLabel>The Shadow</SectionLabel>
-                    <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>
-                      {numerology.lifePath.challenge}
-                    </p>
-                  </div>
-                </div>
-              </Accordion>
-            </FadeIn>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 4 — General Reading
+            SECTION 3 — General Reading
         ══════════════════════════════════════════════════ */}
         <section id="sec-general">
           <FadeIn><SectionDivider label="General Reading" /></FadeIn>
@@ -1392,10 +1215,13 @@ export default function ReadingContent() {
 
       </div>
 
-      <footer className="relative z-10 mt-20 text-center pb-8">
+      <footer className="relative z-10 mt-20 text-center pb-10" style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300 }}>
         <div className="divider mb-6" />
-        <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>
-          Psychic Central · Ancient Wisdom · Modern Clarity
+        <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
+          ANCIENT WISDOM · MODERN CLARITY
+        </p>
+        <p className="text-xs mt-3" style={{ color: 'var(--text-dim)', opacity: 0.6, fontSize: '0.65rem' }}>
+          © {new Date().getFullYear()} Psychic Central · Powered by Path to Life
         </p>
       </footer>
 
