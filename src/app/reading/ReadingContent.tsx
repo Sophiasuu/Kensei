@@ -64,7 +64,7 @@ function PillarCard({ pillar }: { pillar: Pillar }) {
   return (
     <div
       className="rounded-xl p-3 text-center relative overflow-hidden"
-      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid var(--line)' }}
+      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--line)' }}
     >
       {/* thin top accent */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: col, opacity: 0.5 }} />
@@ -579,7 +579,23 @@ const CHAT_SUGGESTIONS = [
   "What is my soul's purpose?",
 ];
 
-function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void; name: string | null }) {
+function renderMarkdown(text: string) {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    if (match[1]) parts.push(<strong key={key++} style={{ color: 'var(--gold)' }}>{match[1]}</strong>);
+    else if (match[2]) parts.push(<em key={key++}>{match[2]}</em>);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+function ChatPanel({ open, onClose, name, reading }: { open: boolean; onClose: () => void; name: string | null; reading: FullReading }) {
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: 'oracle',
     text: `Greetings${name ? `, ${name}` : ''}. I have read your chart across four ancient traditions — Western, Vedic, Bazi, and Numerology. Ask me anything about your cosmic blueprint.`,
@@ -590,6 +606,22 @@ function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const chartContext = useMemo(() => {
+    const { western, vedic, bazi, numerology, synthesis, cosmicProfile } = reading;
+    const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
+    return [
+      `Name: ${name ?? 'Unknown'}`,
+      `Western: ${western.sunSign.name} (${western.sunSign.element}, ${western.sunSign.modality}), ruled by ${western.sunSign.rulingPlanet}. Traits: ${western.sunSign.traits.join(', ')}`,
+      `Vedic: Rashi ${vedic.rashi.name} (${vedic.rashi.element}), Nakshatra ${vedic.nakshatra.name} (${vedic.nakshatra.englishMeaning}), Pada ${vedic.nakshatra.pada}`,
+      `Bazi Day Master: ${bazi.dayMaster.polarity} ${bazi.dayMaster.element}. Pillars: ${pillars.map(p => `${p.label}: ${p.stem.name}/${p.branch.animal}`).join(', ')}`,
+      `Numerology: Life Path ${numerology.lifePath.number}${numerology.lifePath.isMaster ? ' (Master)' : ''}, Personal Year ${numerology.personalYear}. Keywords: ${numerology.lifePath.keywords.join(', ')}`,
+      `Synthesis: Archetype "${synthesis.archetype}", Dominant Element: ${synthesis.dominantElement}, Essence: ${synthesis.essence}, Superpower: ${synthesis.superpower}`,
+      `Core Strengths: ${synthesis.coreStrengths.join(', ')}`,
+      `Growth Areas: ${synthesis.growthAreas.join(', ')}`,
+      `Cosmic Profile: Intuition ${cosmicProfile.intuition}, Ambition ${cosmicProfile.ambition}, Creativity ${cosmicProfile.creativity}, Discipline ${cosmicProfile.discipline}, Empathy ${cosmicProfile.empathy}, Wisdom ${cosmicProfile.wisdom}`,
+    ].join('\n');
+  }, [reading, name]);
+
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 350);
   }, [open]);
@@ -598,25 +630,72 @@ function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  function send() {
+  async function send() {
     if (!input.trim() || loading) return;
     const text = input.trim();
-    setMessages(prev => [...prev, { role: 'user', text, id: Date.now() }]);
+    const userMsg: ChatMessage = { role: 'user', text, id: Date.now() };
+    const updated = [...messages, userMsg];
+    setMessages(updated);
     setInput('');
     setLoading(true);
-    // TODO: connect to AI
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev,
-        { role: 'oracle', text: 'The cosmic AI connection is being woven. Soon I will answer your deepest questions from the full knowledge of your chart.', id: Date.now() + 1 },
-      ]);
+
+    const oracleId = Date.now() + 1;
+
+    try {
+      const apiMessages = updated
+        .filter(m => m.id !== 0)
+        .map(m => ({ role: m.role, content: m.text }));
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages, chartContext }),
+      });
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Request failed');
+      }
+
+      // Add empty oracle message, then stream into it
+      setMessages(prev => [...prev, { role: 'oracle', text: '', id: oracleId }]);
       setLoading(false);
-    }, 900);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const payload = trimmed.slice(6);
+          if (payload === '[DONE]') break;
+          try {
+            const json = JSON.parse(payload);
+            if (json.content) {
+              setMessages(prev =>
+                prev.map(m => m.id === oracleId ? { ...m, text: m.text + json.content } : m)
+              );
+            }
+          } catch { /* skip */ }
+        }
+      }
+    } catch {
+      setMessages(prev => [...prev, { role: 'oracle', text: 'A cosmic disturbance prevents my response. Please try again.', id: oracleId }]);
+      setLoading(false);
+    }
   }
 
   return (
     <>
-      {open && <div className="chat-overlay" onClick={onClose} aria-hidden="true" />}
       <div className={`chat-panel${open ? ' open' : ''}`} role="complementary" aria-label="Cosmic advisor">
         {/* Header */}
         <div className="chat-header">
@@ -627,7 +706,7 @@ function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void
             >✦</div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--gold)', letterSpacing: '0.16em' }}>Cosmic Advisor</p>
-              <p className="text-xs" style={{ color: 'var(--text-dim)' }}>AI · Coming soon</p>
+              <p className="text-xs" style={{ color: 'var(--text-dim)' }}>Powered by DeepSeek</p>
             </div>
           </div>
           <button className="chat-close-btn" onClick={onClose} aria-label="Close chat">×</button>
@@ -638,7 +717,9 @@ function ChatPanel({ open, onClose, name }: { open: boolean; onClose: () => void
           {messages.map(msg => (
             <div key={msg.id} className={`chat-bubble ${msg.role}`}>
               {msg.role === 'oracle' && <p className="chat-oracle-label">✦ Oracle</p>}
-              <p>{msg.text}</p>
+              {msg.text.split('\n').filter(Boolean).map((para, i) => (
+                <p key={i}>{renderMarkdown(para)}</p>
+              ))}
             </div>
           ))}
           {loading && (
@@ -693,7 +774,7 @@ export default function ReadingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [insightTab, setInsightTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
 
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
@@ -744,7 +825,7 @@ export default function ReadingContent() {
       traits: vedic.rashi.traits.slice(0, 3),
     },
     {
-      id: 'bazi', icon: ICONS.bazi, accent: '#7B3FA0',
+      id: 'bazi', icon: ICONS.bazi, accent: '#E07A5F',
       system: 'Bazi', value: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`,
       sub: 'Day Master',
       meta: `${bazi.dayPillar.stem.chinese}${bazi.dayPillar.branch.chinese} · ${bazi.yearPillar.branch.animal} Year`,
@@ -761,7 +842,7 @@ export default function ReadingContent() {
   ];
 
   return (
-    <main className="reading-main relative min-h-screen pb-28 overflow-x-hidden">
+    <main className="reading-main relative min-h-screen pb-28">
       <StarField />
       <SideNav name={name} onChatOpen={() => setChatOpen(true)} onReturn={() => router.push('/')} />
 
@@ -779,7 +860,7 @@ export default function ReadingContent() {
         )}
         <button
           className="chat-fab-mobile"
-          onClick={() => setChatOpen(o => !o)}
+          onClick={() => setChatOpen(true)}
           aria-label="Open cosmic advisor"
         >✦</button>
       </div>
@@ -807,12 +888,51 @@ export default function ReadingContent() {
             </div>
           </FadeIn>
 
+          {/* Radar + Summary side by side */}
+          <FadeIn>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 rounded-2xl p-5 sm:p-8 relative overflow-hidden"
+              style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--border)' }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }} />
+
+              {/* Left: Radar chart */}
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Cosmic Profile</p>
+                <RadarChart profile={reading.cosmicProfile} />
+              </div>
+
+              {/* Right: Summary */}
+              <div className="flex flex-col justify-center gap-4">
+                <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Summary</p>
+                <p className="font-display text-xl font-semibold" style={{ color: 'var(--gold)' }}>
+                  {synthesis.archetypeSymbol} {synthesis.archetype}
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  {synthesis.essence}
+                </p>
+                <div>
+                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-dim)' }}>Core Strengths</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {synthesis.coreStrengths.map(s => (
+                      <span key={s} className="pill" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.68rem' }}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs italic" style={{ color: 'var(--text-dim)' }}>
+                  Superpower: {synthesis.superpower}
+                </p>
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* Four tradition cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {glanceCards.map((card, i) => (
               <FadeIn key={card.id} delay={i * 80}>
                 <div
                   className="rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden h-full"
-                  style={{ background: `${card.accent}08`, border: `1px solid ${card.accent}22` }}
+                  style={{ background: `${card.accent}15`, border: `1px solid ${card.accent}22` }}
                 >
                   {/* thin top accent */}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.7 }} />
@@ -843,7 +963,7 @@ export default function ReadingContent() {
                   </div>
 
                   {/* Meta */}
-                  <p className="text-xs" style={{ color: card.accent, opacity: 0.75 }}>{card.meta}</p>
+                  <p className="text-xs" style={{ color: card.accent, opacity: 0.9 }}>{card.meta}</p>
 
                   {/* Traits */}
                   <div className="flex flex-col gap-1 mt-auto pt-1" style={{ borderTop: '1px solid var(--line)' }}>
@@ -856,25 +976,6 @@ export default function ReadingContent() {
             ))}
           </div>
         </section>
-
-        {/* ══════════════════════════════════════════════════
-            Cosmic Profile — Radar Chart
-        ══════════════════════════════════════════════════ */}
-        <FadeIn>
-          <div
-            className="rounded-2xl p-6 sm:p-10 relative overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--border)' }}
-          >
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }} />
-            <div className="text-center mb-6">
-              <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Cosmic Profile</p>
-              <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: 1.8 }}>
-                Your strengths across six dimensions, derived from all four traditions.
-              </p>
-            </div>
-            <RadarChart profile={reading.cosmicProfile} />
-          </div>
-        </FadeIn>
 
         {/* ══════════════════════════════════════════════════
             SECTION 2 — Summary / Synthesis
@@ -1196,7 +1297,7 @@ export default function ReadingContent() {
         </p>
       </footer>
 
-      <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} name={name} />
+      <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} name={name} reading={reading} />
     </main>
   );
 }

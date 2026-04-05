@@ -59,7 +59,7 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
   return (
     <div className="radar-wrap">
       <svg
-        viewBox="0 0 300 300"
+        viewBox="-30 -30 360 360"
         className="radar-svg"
         role="img"
         aria-label="Cosmic profile radar chart"
@@ -123,7 +123,7 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
 
         {/* Axis labels */}
         {AXES.map((axis, i) => {
-          const [x, y] = polarToCart(i * step, R + 24);
+          const [x, y] = polarToCart(i * step, R + 30);
           return (
             <text
               key={axis.key}
@@ -157,17 +157,6 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
           );
         })}
       </svg>
-
-      {/* Stats legend below */}
-      <div className="radar-legend">
-        {AXES.map(axis => (
-          <div key={axis.key} className="radar-legend-item">
-            <span className="radar-legend-icon">{axis.icon}</span>
-            <span className="radar-legend-label">{axis.label}</span>
-            <span className="radar-legend-val">{profile[axis.key]}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
