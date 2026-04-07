@@ -66,8 +66,8 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
       >
         <defs>
           <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(199,125,255,0.15)" />
-            <stop offset="100%" stopColor="rgba(199,125,255,0)" />
+            <stop offset="0%" stopColor="rgba(0,0,0,0.04)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
           </radialGradient>
           <filter id="radar-blur">
             <feGaussianBlur in="SourceGraphic" stdDeviation="6" />
@@ -106,7 +106,7 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
         {/* Data shape — soft glow layer */}
         <polygon
           points={polygonPoints(animatedValues)}
-          fill="rgba(199,125,255,0.12)"
+          fill="rgba(0,0,0,0.06)"
           stroke="none"
           filter="url(#radar-blur)"
         />
@@ -114,8 +114,8 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
         {/* Data shape — main fill */}
         <polygon
           points={polygonPoints(animatedValues)}
-          fill="rgba(199,125,255,0.08)"
-          stroke="var(--gold)"
+          fill="rgba(0,0,0,0.05)"
+          stroke="var(--text)"
           strokeWidth={1.5}
           strokeLinejoin="round"
           opacity={progress > 0 ? 1 : 0}

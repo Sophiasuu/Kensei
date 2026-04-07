@@ -79,7 +79,7 @@ export default function Constellations() {
                   y1={c.stars[a][1]}
                   x2={c.stars[b][0]}
                   y2={c.stars[b][1]}
-                  stroke="var(--gold)"
+                  stroke="var(--text-dim)"
                   strokeWidth={0.5}
                   strokeOpacity={0.25}
                   strokeDasharray={len}
@@ -98,7 +98,7 @@ export default function Constellations() {
                 cx={x}
                 cy={y}
                 r={si % 3 === 0 ? 1.5 : 1}
-                fill="var(--gold)"
+                fill="var(--text-muted)"
                 opacity={0}
                 style={{
                   animation: `constellationCycle ${cycleDuration}s ease-in-out ${c.offset + si * 0.15}s infinite`,

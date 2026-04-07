@@ -31,13 +31,13 @@ export default function StarField() {
   return (
     <>
       <div ref={ref} className="fixed inset-0 pointer-events-none z-0 overflow-hidden" />
-      {/* Gradient orbs */}
+      {/* Subtle ambient orbs */}
       <div
         className="orb fixed pointer-events-none z-0"
         style={{
           width: '600px', height: '600px',
           top: '-200px', left: '-200px',
-          background: 'radial-gradient(circle, rgba(123,63,160,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(0,0,0,0.03) 0%, transparent 70%)',
           animationDuration: '14s',
         }}
       />
@@ -46,7 +46,7 @@ export default function StarField() {
         style={{
           width: '500px', height: '500px',
           bottom: '-150px', right: '-150px',
-          background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(0,0,0,0.02) 0%, transparent 70%)',
           animationDuration: '18s',
           animationDelay: '6s',
         }}

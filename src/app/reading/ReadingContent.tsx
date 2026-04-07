@@ -7,7 +7,6 @@ import FadeIn from '@/components/FadeIn';
 import RadarChart from '@/components/RadarChart';
 import { generateFullReading } from '@/lib/reading';
 import { useLanguage } from '@/context/LanguageContext';
-import LanguageSelector from '@/components/LanguageSelector';
 import YinYang from '@/components/YinYang';
 import type { FullReading, PeriodInsight, DeepSection, LoveSection, CardDeepDive } from '@/types';
 
@@ -84,7 +83,7 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
         </ul>
       </div>
 
-      <div className="rounded-xl p-4" style={{ background: 'rgba(199,125,255,0.06)', border: '1px solid rgba(199,125,255,0.15)' }}>
+      <div className="rounded-xl p-4" style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)' }}>
         <SectionLabel>Watch for</SectionLabel>
         <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>{insight.watchFor}</p>
       </div>
@@ -103,11 +102,11 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
    Deep Analysis — sectional life-area panels
 ───────────────────────────────────────────────────────────────── */
 const DEEP_TABS = [
-  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#C77DFF' },
-  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#D08AE8' },
-  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#9B59D6' },
-  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#7B3FA0' },
-  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#B88AE8' },
+  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#333333' },
+  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#444444' },
+  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#3a3a3a' },
+  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#2a2a2a' },
+  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#4a4a4a' },
 ] as const;
 
 type DeepTabId = typeof DEEP_TABS[number]['id'];
@@ -121,7 +120,7 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
       <FadeIn>
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.018)', border: `1px solid ${accent}22` }}
+          style={{ background: 'rgba(255,255,255,0.35)', border: `1px solid ${accent}22` }}
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.55 }} />
           <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
@@ -195,7 +194,7 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
    Love Panel — expanded premium love section
 ───────────────────────────────────────────────────────────────── */
 function LovePanel({ love }: { love: LoveSection }) {
-  const accent = '#D08AE8';
+  const accent = '#444';
   return (
     <div className="space-y-6 mt-6">
 
@@ -203,7 +202,7 @@ function LovePanel({ love }: { love: LoveSection }) {
       <FadeIn>
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.018)', border: `1px solid ${accent}22` }}
+          style={{ background: 'rgba(255,255,255,0.35)', border: `1px solid ${accent}22` }}
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.55 }} />
           <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
@@ -325,7 +324,7 @@ function LovePanel({ love }: { love: LoveSection }) {
       <div className="grid sm:grid-cols-2 gap-3">
         <FadeIn delay={200}>
           <div className="love-compat-card">
-            <p className="love-mini-label" style={{ color: '#7B3FA0' }}>Compatible Energies</p>
+            <p className="love-mini-label" style={{ color: 'var(--text-muted)' }}>Compatible Energies</p>
             <div className="love-compat-elements">
               {love.compatibilityElements.map((el, i) => (
                 <span key={i} className="compat-el-tag">{el}</span>
@@ -335,7 +334,7 @@ function LovePanel({ love }: { love: LoveSection }) {
         </FadeIn>
         <FadeIn delay={240}>
           <div className="love-redflag-card">
-            <p className="love-mini-label" style={{ color: '#D08AE8' }}>Patterns to Avoid</p>
+            <p className="love-mini-label" style={{ color: 'var(--text-muted)' }}>Patterns to Avoid</p>
             <div className="love-redflags">
               {love.redFlags.map((rf, i) => (
                 <div key={i} className="love-rf-item">
@@ -506,9 +505,6 @@ function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOp
         <span>✦</span>
         Ask Oracle
       </button>
-      <div style={{ marginTop: 8 }}>
-        <LanguageSelector dropUp />
-      </div>
     </nav>
   );
 }
@@ -649,7 +645,7 @@ function ChatPanel({ open, onClose, name, reading }: { open: boolean; onClose: (
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-              style={{ background: 'rgba(199,125,255,0.12)', border: '1px solid rgba(199,125,255,0.3)', color: 'var(--gold)' }}
+              style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--text)' }}
             >✦</div>
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--gold)', letterSpacing: '0.16em' }}>Cosmic Advisor</p>
@@ -785,8 +781,8 @@ export default function ReadingContent() {
   const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, cardDeepDives } = reading;
   const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
 
-  const elemAccent: Record<string, string> = { Fire: '#c46a3a', Earth: '#b89038', Air: '#B88AE8', Water: '#4278c0' };
-  const domColor = elemAccent[synthesis.dominantElement] ?? '#C77DFF';
+  const elemAccent: Record<string, string> = { Fire: '#333', Earth: '#444', Air: '#3a3a3a', Water: '#2a2a2a' };
+  const domColor = elemAccent[synthesis.dominantElement] ?? '#333';
 
   /* ── Detail popover data for each tradition card (generated in reading pipeline) ── */
   const cardDiveMap: Record<string, CardDeepDive> = {
@@ -799,28 +795,28 @@ export default function ReadingContent() {
   /* ── Section 1: Four system glance cards ── */
   const glanceCards = [
     {
-      id: 'western', icon: ICONS.western, accent: '#C77DFF',
+      id: 'western', icon: ICONS.western, accent: '#333',
       system: 'Western', value: `${western.sunSign.symbol} ${western.sunSign.name}`,
       sub: `${western.sunSign.element} · ${western.sunSign.modality}`,
       meta: `Ruled by ${western.sunSign.rulingPlanet}`,
       traits: western.sunSign.traits.slice(0, 3),
     },
     {
-      id: 'vedic', icon: ICONS.vedic, accent: '#FFD700',
+      id: 'vedic', icon: ICONS.vedic, accent: '#444',
       system: 'Vedic', value: vedic.rashi.name,
       sub: `${vedic.rashi.element} · ${vedic.rashi.rulingPlanet}`,
       meta: `${vedic.nakshatra.name} Nakshatra`,
       traits: vedic.rashi.traits.slice(0, 3),
     },
     {
-      id: 'bazi', icon: ICONS.bazi, accent: '#E07A5F',
+      id: 'bazi', icon: ICONS.bazi, accent: '#3a3a3a',
       system: 'Bazi', value: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`,
       sub: 'Day Master',
       meta: `${bazi.dayPillar.stem.chinese}${bazi.dayPillar.branch.chinese} · ${bazi.yearPillar.branch.animal} Year`,
       traits: bazi.dayMaster.traits.slice(0, 3),
     },
     {
-      id: 'numerology', icon: ICONS.numerology, accent: '#B88AE8',
+      id: 'numerology', icon: ICONS.numerology, accent: '#4a4a4a',
       system: 'Numerology',
       value: numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
       sub: numerology.lifePath.keywords.slice(0, 2).join(' · '),
@@ -847,7 +843,6 @@ export default function ReadingContent() {
           {name && (
             <span className="font-display text-sm tracking-widest" style={{ color: 'var(--text-muted)' }}>{name}</span>
           )}
-          <LanguageSelector compact />
         </div>
         <button
           className="chat-fab-mobile"
@@ -883,7 +878,7 @@ export default function ReadingContent() {
           <FadeIn>
             <div
               className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 rounded-2xl p-5 sm:p-8 relative overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--border)' }}
+              style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid var(--border)' }}
             >
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }} />
 
@@ -1055,7 +1050,7 @@ export default function ReadingContent() {
           <FadeIn delay={60}>
             <div
               className="rounded-2xl overflow-hidden"
-              style={{ border: `1px solid ${domColor}28`, background: 'rgba(255,255,255,0.018)' }}
+              style={{ border: `1px solid ${domColor}28`, background: 'rgba(255,255,255,0.35)' }}
             >
               {/* Archetype header */}
               <div
@@ -1078,10 +1073,10 @@ export default function ReadingContent() {
                   </h2>
                 </div>
                 <div className="hidden sm:flex flex-wrap gap-2 justify-end">
-                  <Tag label={western.sunSign.name} accent="#C77DFF" />
-                  <Tag label={vedic.rashi.name} accent="#FFD700" />
-                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#7B3FA0" />
-                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#B88AE8" />
+                  <Tag label={western.sunSign.name} accent="#333" />
+                  <Tag label={vedic.rashi.name} accent="#444" />
+                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#3a3a3a" />
+                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#4a4a4a" />
                 </div>
               </div>
 
@@ -1157,7 +1152,7 @@ export default function ReadingContent() {
             {['General Reading', 'Love & Relationships'].map(label => (
               <div key={label} style={{ marginBottom: '2rem' }}>
                 <SectionDivider label={label} />
-                <div className="rounded-2xl p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.018)', border: '1px solid var(--line)' }}>
+                <div className="rounded-2xl p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid var(--line)' }}>
                   <div className="gate-skel" style={{ width: '40%', height: 14, marginBottom: 16 }} />
                   <div className="gate-skel" style={{ width: '100%', height: 10, marginBottom: 10 }} />
                   <div className="gate-skel" style={{ width: '95%', height: 10, marginBottom: 10 }} />
@@ -1219,7 +1214,7 @@ export default function ReadingContent() {
 
       </div>
 
-      <footer className="relative z-10 mt-20 text-center pb-10" style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300 }}>
+      <footer className="relative z-10 mt-20 text-center pb-10" style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}>
         <div className="divider mb-6" />
         <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
           ANCIENT WISDOM · MODERN CLARITY

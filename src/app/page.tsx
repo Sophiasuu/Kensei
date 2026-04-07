@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MeshGradient } from '@paper-design/shaders-react';
-import StarField from '@/components/StarField';
 import FadeIn from '@/components/FadeIn';
-import Constellations from '@/components/Constellations';
-
-import LanguageSelector from '@/components/LanguageSelector';
 
 const SYSTEMS = [
   { name: 'Western',    sub: 'Sun sign & archetypes',    icon: '☽' },
@@ -15,8 +10,6 @@ const SYSTEMS = [
   { name: 'Bazi',       sub: 'Four Pillars of Destiny',  icon: '命' },
   { name: 'Numerology', sub: 'Life Path & cycles',       icon: '∞' },
 ];
-
-const SYSTEM_ACCENTS = ['#C77DFF', '#FFD700', '#7B3FA0', '#B88AE8'];
 
 export default function HomePage() {
   const router = useRouter();
@@ -38,27 +31,12 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-8 sm:pt-16 overflow-hidden">
-      {/* Language globe — top-right */}
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
-        <LanguageSelector compact />
-      </div>
-
-      {/* Mesh gradient background */}
-      <MeshGradient
-        className="!fixed inset-0 w-full h-full"
-        style={{ position: 'fixed', inset: 0, zIndex: 0 }}
-        colors={['#1A0A2E', '#220F40', '#2A1555', '#3C1A6B']}
-        speed={0.3}
-      />
-      <StarField />
-      <Constellations />
-
       <div className="relative z-10 w-full max-w-md text-center">
         <FadeIn>
           {/* Headline */}
           <h1
-            className="mb-3 text-4xl sm:text-5xl gradient-gold"
-            style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.04em' }}
+            className="mb-3 text-4xl sm:text-5xl"
+            style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.04em', color: 'var(--text)' }}
           >
             Psychic Central
           </h1>
@@ -67,7 +45,7 @@ export default function HomePage() {
         {/* Subtitle — delayed fade-in with upward drift */}
         <div
           className="subtitle-drift mb-6 text-sm leading-relaxed"
-          style={{ color: 'var(--text-muted)', letterSpacing: '0.03em', fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300 }}
+          style={{ color: 'var(--text-muted)', letterSpacing: '0.03em', fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}
         >
           Your complete cosmic blueprint
         </div>
@@ -88,12 +66,12 @@ export default function HomePage() {
               >                <div
                   className="mx-auto mb-2 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center relative overflow-hidden"
                   style={{
-                    background: `${SYSTEM_ACCENTS[i]}0e`,
-                    border: `1px solid ${SYSTEM_ACCENTS[i]}28`,
+                    background: 'rgba(0,0,0,0.05)',
+                    border: '1px solid rgba(0,0,0,0.12)',
                   }}
                 >
                   <span style={{
-                    color: SYSTEM_ACCENTS[i],
+                    color: 'var(--text)',
                     fontSize: s.name === 'Western' ? '1.5rem' : s.name === 'Bazi' ? '1.2rem' : '1.5rem',
                     fontFamily: s.name === 'Vedic' ? 'serif' : 'inherit',
                   }}>
@@ -112,11 +90,11 @@ export default function HomePage() {
           <form
             onSubmit={handleSubmit}
             className="rounded-2xl p-5 sm:p-8 text-left space-y-5"
-            style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)' }}
+            style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(12px)' }}
           >
             <div>
               <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
-                Full Name <span style={{ color: 'var(--gold)' }}>*</span>
+                Full Name <span style={{ color: 'var(--text)' }}>*</span>
               </label>
               <input
                 className="cosmic-input"
@@ -131,7 +109,7 @@ export default function HomePage() {
 
             <div>
               <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
-                Date of Birth <span style={{ color: 'var(--gold)' }}>*</span>
+                Date of Birth <span style={{ color: 'var(--text)' }}>*</span>
               </label>
               <input
                 className="cosmic-input"
@@ -174,7 +152,7 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 mt-12 mb-6 flex flex-col items-center gap-1" style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300 }}>
+      <footer className="relative z-10 mt-12 mb-6 flex flex-col items-center gap-1" style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}>
         <p className="text-xs tracking-widest" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
           ANCIENT WISDOM · MODERN CLARITY
         </p>
