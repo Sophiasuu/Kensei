@@ -605,6 +605,132 @@
     }
   }
 
+  /* ── Mystic Illustrations (Co-Star style) ── */
+
+  .mystic-ill {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    width: var(--ill-size, 120px);
+    height: var(--ill-size, 120px);
+    opacity: var(--ill-opacity, 0.18);
+    z-index: 0;
+    filter: grayscale(0.15) saturate(0.85);
+    transition: opacity 600ms var(--ease-out-quart);
+  }
+
+  .mystic-ill__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .mystic-ill--corner-tr {
+    top: -1rem;
+    right: -1rem;
+  }
+
+  .mystic-ill--corner-tl {
+    top: -1rem;
+    left: -1rem;
+  }
+
+  .mystic-ill--corner-br {
+    bottom: -1rem;
+    right: -1rem;
+  }
+
+  .mystic-ill--corner-bl {
+    bottom: -1rem;
+    left: -1rem;
+  }
+
+  .mystic-ill--float-left {
+    top: 50%;
+    left: -2rem;
+    transform: translateY(-50%);
+  }
+
+  .mystic-ill--float-right {
+    top: 50%;
+    right: -2rem;
+    transform: translateY(-50%);
+  }
+
+  .mystic-ill--center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .mystic-ill--inline {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Background floating illustrations */
+  .mystic-bg-illustration {
+    position: fixed;
+    pointer-events: none;
+    user-select: none;
+    z-index: -1;
+    filter: grayscale(0.2) saturate(0.7);
+    animation: mystic-float ease-in-out infinite;
+  }
+
+  @keyframes mystic-float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(2deg);
+    }
+  }
+
+  /* Section divider illustrations */
+  .mystic-divider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    opacity: 0.22;
+  }
+
+  .mystic-divider::before,
+  .mystic-divider::after {
+    content: '';
+    flex: 1;
+    max-width: 6rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+  }
+
+  @media (max-width: 767px) {
+    .mystic-ill {
+      --ill-size: calc(var(--ill-size, 120px) * 0.7) !important;
+    }
+
+    .mystic-ill--corner-tr,
+    .mystic-ill--corner-tl,
+    .mystic-ill--corner-br,
+    .mystic-ill--corner-bl {
+      top: auto;
+      bottom: auto;
+      left: auto;
+      right: auto;
+    }
+
+    .mystic-ill--corner-tr { top: -0.5rem; right: -0.5rem; }
+    .mystic-ill--corner-tl { top: -0.5rem; left: -0.5rem; }
+    .mystic-ill--corner-br { bottom: -0.5rem; right: -0.5rem; }
+    .mystic-ill--corner-bl { bottom: -0.5rem; left: -0.5rem; }
+
+    .mystic-bg-illustration {
+      opacity: 0.06 !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

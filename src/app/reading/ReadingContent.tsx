@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FadeIn from '@/components/FadeIn';
+import MysticIllustration from '@/components/MysticIllustration';
 import RadarChart from '@/components/RadarChart';
 import StarField from '@/components/StarField';
 import { generateFullReading } from '@/lib/reading';
@@ -239,6 +240,7 @@ export default function ReadingContent() {
         <StarField />
         <div className="report-shell flex min-h-[calc(100vh-5rem)] items-center justify-center">
           <div className="empty-panel max-w-xl text-center">
+            <MysticIllustration name="crystal-ball" placement="center" size={180} opacity={0.08} />
             <p className="eyebrow">Reading Unavailable</p>
             <h1 className="mt-4 font-display text-[clamp(2.4rem,7vw,4.2rem)] leading-[0.98] text-[var(--text-strong)]">
               No birth data was provided.
@@ -331,6 +333,20 @@ export default function ReadingContent() {
     <main className="relative min-h-screen overflow-hidden px-5 pb-20 pt-6 sm:px-8 lg:px-10">
       <StarField />
 
+      {/* Co-Star style floating background illustrations */}
+      <div className="mystic-bg-illustration" style={{ top: '8%', right: '3%', opacity: 0.06, width: 150, height: 150, animationDuration: '20s' }}>
+        <img src="/illustrations/zodiac-wheel.png" alt="" width={150} height={150} draggable={false} />
+      </div>
+      <div className="mystic-bg-illustration" style={{ top: '30%', left: '2%', opacity: 0.05, width: 120, height: 120, animationDuration: '24s', animationDelay: '4s' }}>
+        <img src="/illustrations/moon-goddess.png" alt="" width={120} height={120} draggable={false} />
+      </div>
+      <div className="mystic-bg-illustration" style={{ top: '55%', right: '4%', opacity: 0.05, width: 100, height: 100, animationDuration: '18s', animationDelay: '7s' }}>
+        <img src="/illustrations/hourglass.png" alt="" width={100} height={100} draggable={false} />
+      </div>
+      <div className="mystic-bg-illustration" style={{ top: '75%', left: '3%', opacity: 0.06, width: 110, height: 110, animationDuration: '22s', animationDelay: '2s' }}>
+        <img src="/illustrations/potion-bottle.png" alt="" width={110} height={110} draggable={false} />
+      </div>
+
       <div className="report-shell space-y-12">
         <header className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <FadeIn>
@@ -359,6 +375,7 @@ export default function ReadingContent() {
 
           <FadeIn delay={90}>
             <section className="summary-hero-panel">
+              <MysticIllustration name="sun-face" placement="corner-tr" size={100} opacity={0.1} />
               <div className="grid gap-6 md:grid-cols-[0.92fr_1.08fr] md:items-center">
                 <div className="space-y-4">
                   <p className="section-kicker">Unified Archetype</p>
@@ -430,6 +447,7 @@ export default function ReadingContent() {
         <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
           <FadeIn>
             <div className="report-block space-y-6">
+              <MysticIllustration name="sacred-book" placement="corner-tr" size={80} opacity={0.09} />
               <div className="space-y-3">
                 <p className="eyebrow">Tradition Breakdown</p>
                 <h2 className="font-display text-[clamp(2rem,4vw,3rem)] leading-[1.02] text-[var(--text-strong)]">
@@ -490,6 +508,7 @@ export default function ReadingContent() {
           <div className="space-y-6">
             <FadeIn delay={60}>
               <div className="report-block space-y-6">
+                <MysticIllustration name="saturn" placement="corner-tr" size={72} opacity={0.09} />
                 <div className="space-y-3">
                   <p className="eyebrow">Current Timing</p>
                   <p className="story-copy">
@@ -517,6 +536,7 @@ export default function ReadingContent() {
 
             <FadeIn delay={120}>
               <div className="report-block space-y-6">
+                <MysticIllustration name="crystals" placement="corner-tr" size={72} opacity={0.09} />
                 <div className="space-y-3">
                   <p className="eyebrow">Structural Markers</p>
                   <p className="story-copy">
@@ -579,6 +599,7 @@ export default function ReadingContent() {
 
           <FadeIn delay={90}>
             <div className="deep-panel space-y-6">
+              <MysticIllustration name="all-seeing-eye" placement="corner-tr" size={80} opacity={0.09} />
               <div className="deep-tabs">
                 {DEEP_TABS.map((tab) => (
                   <button
@@ -601,6 +622,7 @@ export default function ReadingContent() {
         <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
           <FadeIn>
             <div className="report-block space-y-5">
+              <MysticIllustration name="tarot-cards" placement="corner-tr" size={80} opacity={0.1} />
               <p className="eyebrow">Carry Forward</p>
               <h2 className="font-display text-[clamp(2rem,4vw,3rem)] leading-[1.02] text-[var(--text-strong)]">
                 The reading resolves into one working instruction.
@@ -623,6 +645,7 @@ export default function ReadingContent() {
 
           <FadeIn delay={90}>
             <div className="report-block space-y-5">
+              <MysticIllustration name="moon-mobile" placement="corner-tr" size={72} opacity={0.1} />
               <p className="eyebrow">Next Move</p>
               <p className="panel-copy max-w-none">
                 Generate another reading, compare patterns for someone close to you, or return to the opening ritual when you want a fresh pass with updated context.
