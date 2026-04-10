@@ -54,17 +54,17 @@ export default function HomePage() {
   return (
     <main className="relative overflow-hidden px-5 pb-16 pt-6 sm:px-8 lg:px-10">
       {/* Co-Star style floating background illustrations */}
-      <div className="mystic-bg-illustration" style={{ top: '5%', left: '3%', opacity: 0.08, width: 160, height: 160, animationDuration: '18s' }}>
-        <img src="/illustrations/moon-mobile.png" alt="" width={160} height={160} draggable={false} />
+      <div className="mystic-bg-illustration" style={{ top: '5%', left: '3%', width: 400, height: 400, animationDuration: '18s' }}>
+        <img src="/illustrations/moon-mobile.png" alt="" width={400} height={400} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ top: '35%', right: '2%', opacity: 0.06, width: 140, height: 140, animationDuration: '22s', animationDelay: '3s' }}>
-        <img src="/illustrations/saturn.png" alt="" width={140} height={140} draggable={false} />
+      <div className="mystic-bg-illustration" style={{ top: '35%', right: '2%', width: 380, height: 380, animationDuration: '22s', animationDelay: '3s' }}>
+        <img src="/illustrations/saturn.png" alt="" width={380} height={380} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ bottom: '15%', left: '5%', opacity: 0.07, width: 120, height: 120, animationDuration: '20s', animationDelay: '6s' }}>
-        <img src="/illustrations/crystals.png" alt="" width={120} height={120} draggable={false} />
+      <div className="mystic-bg-illustration" style={{ bottom: '15%', left: '5%', width: 340, height: 340, animationDuration: '20s', animationDelay: '6s' }}>
+        <img src="/illustrations/crystals.png" alt="" width={340} height={340} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ bottom: '8%', right: '6%', opacity: 0.06, width: 100, height: 100, animationDuration: '24s', animationDelay: '2s' }}>
-        <img src="/illustrations/potion-bottle.png" alt="" width={100} height={100} draggable={false} />
+      <div className="mystic-bg-illustration" style={{ bottom: '8%', right: '6%', width: 320, height: 320, animationDuration: '24s', animationDelay: '2s' }}>
+        <img src="/illustrations/potion-bottle.png" alt="" width={320} height={320} draggable={false} />
       </div>
 
       <div className="mx-auto max-w-7xl">
@@ -92,7 +92,7 @@ export default function HomePage() {
                 </div>
 
                 <aside className="quote-panel">
-                  <MysticIllustration name="sleeping-moon" placement="corner-tr" size={90} opacity={0.14} />
+                  <MysticIllustration name="sleeping-moon" placement="corner-tr" size={90} opacity={1} />
                   <p className="quote-mark">Ritual note</p>
                   <p className="quote-copy">
                     Built for first-time seekers who want depth fast, without the usual haze of mystic filler or generic AI wellness copy.
@@ -104,17 +104,17 @@ export default function HomePage() {
             <FadeIn delay={140}>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="surface-panel">
-                  <MysticIllustration name="all-seeing-eye" placement="corner-br" size={72} opacity={0.1} />
+                  <MysticIllustration name="all-seeing-eye" placement="corner-br" size={72} opacity={1} />
                   <p className="section-kicker">Immediate Clarity</p>
                   <p className="panel-copy">See your dominant archetype, elemental balance, and current timing inside a single guided report.</p>
                 </div>
                 <div className="surface-panel">
-                  <MysticIllustration name="sacred-book" placement="corner-br" size={68} opacity={0.1} />
+                  <MysticIllustration name="sacred-book" placement="corner-br" size={68} opacity={1} />
                   <p className="section-kicker">Interpretation First</p>
                   <p className="panel-copy">The output is written for humans. The systems stay precise, but the language stays readable.</p>
                 </div>
                 <div className="surface-panel">
-                  <MysticIllustration name="hourglass" placement="corner-br" size={68} opacity={0.1} />
+                  <MysticIllustration name="hourglass" placement="corner-br" size={68} opacity={1} />
                   <p className="section-kicker">Optional Birth Time</p>
                   <p className="panel-copy">Add a birth time when you have it to unlock the Hour Pillar and a sharper timing layer.</p>
                 </div>
@@ -138,8 +138,8 @@ export default function HomePage() {
 
           <FadeIn delay={260}>
             <aside className="ritual-panel lg:ml-auto lg:max-w-[34rem]">
-              <MysticIllustration name="crystal-ball" placement="corner-tl" size={100} opacity={0.12} />
-              <MysticIllustration name="quill" placement="corner-br" size={80} opacity={0.1} />
+              <MysticIllustration name="crystal-ball" placement="corner-tl" size={100} opacity={1} />
+              <MysticIllustration name="quill" placement="corner-br" size={80} opacity={1} />
               <div className="space-y-3">
                 <p className="eyebrow">Begin The Reading</p>
                 <h2 className="font-display text-[clamp(2.25rem,5vw,3.6rem)] leading-[1.02] text-[var(--text-strong)]">
@@ -242,7 +242,7 @@ export default function HomePage() {
               return (
                 <FadeIn key={section.title} delay={index * 70}>
                   <article className="surface-panel h-full">
-                    <MysticIllustration name={cornerIcons[index]} placement="corner-tr" size={64} opacity={0.1} />
+                    <MysticIllustration name={cornerIcons[index]} placement="corner-tr" size={64} opacity={1} />
                     <p className="section-kicker">{section.title}</p>
                     <p className="panel-copy mt-4">{section.text}</p>
                   </article>

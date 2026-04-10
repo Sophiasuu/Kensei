@@ -135,11 +135,21 @@
   .report-block,
   .empty-panel {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--line);
     background: var(--surface);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(10px);
+  }
+
+  .surface-panel > *:not(.mystic-ill),
+  .quote-panel > *:not(.mystic-ill),
+  .ritual-panel > *:not(.mystic-ill),
+  .reading-panel > *:not(.mystic-ill),
+  .report-block > *:not(.mystic-ill),
+  .empty-panel > *:not(.mystic-ill) {
+    position: relative;
+    z-index: 2;
   }
 
   .surface-panel,
@@ -500,10 +510,20 @@
   .deep-panel,
   .system-detail-panel,
   .summary-hero-panel {
+    position: relative;
+    overflow: visible;
     border-radius: 1.6rem;
     border: 1px solid var(--line);
     background: var(--surface-strong);
     padding: clamp(1.1rem, 1rem + 0.8vw, 1.75rem);
+  }
+
+  .insight-panel > *:not(.mystic-ill),
+  .deep-panel > *:not(.mystic-ill),
+  .system-detail-panel > *:not(.mystic-ill),
+  .summary-hero-panel > *:not(.mystic-ill) {
+    position: relative;
+    z-index: 2;
   }
 
   .summary-stat,
@@ -613,10 +633,23 @@
     user-select: none;
     width: var(--ill-size, 120px);
     height: var(--ill-size, 120px);
-    opacity: var(--ill-opacity, 0.18);
-    z-index: 0;
-    filter: grayscale(0.15) saturate(0.85);
+    opacity: var(--ill-opacity, 1);
+    z-index: 1;
+    filter: none;
     transition: opacity 600ms var(--ease-out-quart);
+    animation: mystic-swing 5s ease-in-out infinite;
+    transform-origin: top center;
+  }
+
+  .mystic-ill--corner-br,
+  .mystic-ill--corner-bl {
+    transform-origin: bottom center;
+    animation-name: mystic-sway;
+  }
+
+  .mystic-ill--center {
+    animation-name: mystic-pulse;
+    transform-origin: center center;
   }
 
   .mystic-ill__img {
@@ -628,21 +661,29 @@
   .mystic-ill--corner-tr {
     top: -1rem;
     right: -1rem;
+    animation-duration: 5.5s;
+    animation-delay: 0.3s;
   }
 
   .mystic-ill--corner-tl {
     top: -1rem;
     left: -1rem;
+    animation-duration: 6.5s;
+    animation-delay: 1.2s;
   }
 
   .mystic-ill--corner-br {
     bottom: -1rem;
     right: -1rem;
+    animation-duration: 7s;
+    animation-delay: 0.8s;
   }
 
   .mystic-ill--corner-bl {
     bottom: -1rem;
     left: -1rem;
+    animation-duration: 6s;
+    animation-delay: 1.8s;
   }
 
   .mystic-ill--float-left {
@@ -668,13 +709,14 @@
     display: inline-block;
   }
 
-  /* Background floating illustrations */
+  /* Scattered page illustrations */
   .mystic-bg-illustration {
-    position: fixed;
+    position: absolute;
     pointer-events: none;
     user-select: none;
-    z-index: -1;
-    filter: grayscale(0.2) saturate(0.7);
+    z-index: 0;
+    filter: none;
+    opacity: 0.35;
     animation: mystic-float ease-in-out infinite;
   }
 
@@ -682,8 +724,49 @@
     0%, 100% {
       transform: translateY(0) rotate(0deg);
     }
+    25% {
+      transform: translateY(-18px) rotate(4deg);
+    }
     50% {
-      transform: translateY(-12px) rotate(2deg);
+      transform: translateY(-8px) rotate(-2deg);
+    }
+    75% {
+      transform: translateY(-22px) rotate(3deg);
+    }
+  }
+
+  @keyframes mystic-swing {
+    0%, 100% {
+      transform: rotate(0deg) translateY(0);
+    }
+    25% {
+      transform: rotate(6deg) translateY(-4px);
+    }
+    75% {
+      transform: rotate(-6deg) translateY(2px);
+    }
+  }
+
+  @keyframes mystic-sway {
+    0%, 100% {
+      transform: rotate(0deg) translateY(0);
+    }
+    33% {
+      transform: rotate(-5deg) translateY(-6px);
+    }
+    66% {
+      transform: rotate(5deg) translateY(2px);
+    }
+  }
+
+  @keyframes mystic-pulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      opacity: var(--ill-opacity, 1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.08) rotate(2deg);
+      opacity: calc(var(--ill-opacity, 1) * 1.15);
     }
   }
 
@@ -694,7 +777,7 @@
     align-items: center;
     gap: 1.5rem;
     padding: 1rem 0;
-    opacity: 0.22;
+    opacity: 1;
   }
 
   .mystic-divider::before,
@@ -727,7 +810,7 @@
     .mystic-ill--corner-bl { bottom: -0.5rem; left: -0.5rem; }
 
     .mystic-bg-illustration {
-      opacity: 0.06 !important;
+      opacity: 0.25 !important;
     }
   }
 
