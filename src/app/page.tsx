@@ -66,8 +66,8 @@ export default function HomePage() {
               >                <div
                   className="mx-auto mb-2 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center relative overflow-hidden"
                   style={{
-                    background: 'rgba(0,0,0,0.05)',
-                    border: '1px solid rgba(0,0,0,0.12)',
+                    background: 'rgba(194,138,12,0.1)',
+                    border: '1px solid rgba(141,92,0,0.14)',
                   }}
                 >
                   <span style={{
@@ -90,7 +90,7 @@ export default function HomePage() {
           <form
             onSubmit={handleSubmit}
             className="rounded-2xl p-5 sm:p-8 text-left space-y-5"
-            style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(0,0,0,0.1)', backdropFilter: 'blur(12px)' }}
+            style={{ background: 'var(--paper-strong)', border: '1px solid rgba(156,108,18,0.14)', boxShadow: '0 20px 60px rgba(110,82,28,0.1)' }}
           >
             <div>
               <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
@@ -134,7 +134,7 @@ export default function HomePage() {
             </div>
 
             {error && (
-              <p className="text-sm" style={{ color: '#c05050' }}>{error}</p>
+              <p className="text-sm" style={{ color: '#a2481a' }}>{error}</p>
             )}
 
             <p className="text-center" style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginBottom: 4 }}>* Required to generate your reading</p>

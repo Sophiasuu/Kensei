@@ -83,7 +83,7 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
         </ul>
       </div>
 
-      <div className="rounded-xl p-4" style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="rounded-xl p-4" style={{ background: 'rgba(194,138,12,0.08)', border: '1px solid rgba(141,92,0,0.12)' }}>
         <SectionLabel>Watch for</SectionLabel>
         <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>{insight.watchFor}</p>
       </div>
@@ -102,14 +102,12 @@ function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; perso
    Deep Analysis — sectional life-area panels
 ───────────────────────────────────────────────────────────────── */
 const DEEP_TABS = [
-  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#333333' },
-  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#444444' },
-  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#3a3a3a' },
-  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#2a2a2a' },
-  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#4a4a4a' },
+  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#9d6300' },
+  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#c47d00' },
+  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#bf7d00' },
+  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#9b7600' },
+  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#d18b00' },
 ] as const;
-
-type DeepTabId = typeof DEEP_TABS[number]['id'];
 
 import type { DeepAnalysis } from '@/types';
 
@@ -120,9 +118,9 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
       <FadeIn>
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.35)', border: `1px solid ${accent}22` }}
+          style={{ background: 'var(--paper-strong)', border: `1px solid ${accent}24`, boxShadow: '0 16px 42px rgba(110,82,28,0.08)' }}
         >
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.55 }} />
+          <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: accent, opacity: 0.3 }} />
           <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
             {section.overview}
           </p>
@@ -194,7 +192,7 @@ function DeepPanel({ section, accent }: { section: DeepSection; accent: string }
    Love Panel — expanded premium love section
 ───────────────────────────────────────────────────────────────── */
 function LovePanel({ love }: { love: LoveSection }) {
-  const accent = '#444';
+  const accent = '#c47d00';
   return (
     <div className="space-y-6 mt-6">
 
@@ -202,9 +200,9 @@ function LovePanel({ love }: { love: LoveSection }) {
       <FadeIn>
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.35)', border: `1px solid ${accent}22` }}
+          style={{ background: 'var(--paper-strong)', border: `1px solid ${accent}24`, boxShadow: '0 16px 42px rgba(110,82,28,0.08)' }}
         >
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, opacity: 0.55 }} />
+          <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: accent, opacity: 0.3 }} />
           <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
             {love.overview}
           </p>
@@ -385,77 +383,24 @@ function LovePanel({ love }: { love: LoveSection }) {
   );
 }
 
-function DeepAnalysisSection({
-  deepAnalysis,
-  deepTab,
-  setDeepTab,
-}: {
-  deepAnalysis: DeepAnalysis;
-  deepTab: DeepTabId;
-  setDeepTab: (t: DeepTabId) => void;
-}) {
-  const activeTab = DEEP_TABS.find(t => t.id === deepTab) ?? DEEP_TABS[0];
-  const activeSection = deepAnalysis[deepTab];
-
-  return (
-    <section>
-      <FadeIn>
-        <SectionDivider label="Deep Analysis" />
-      </FadeIn>
-
-      <FadeIn delay={50}>
-        <p
-          className="text-center text-sm mb-8"
-          style={{ color: 'var(--text-muted)', lineHeight: 1.9 }}
-        >
-          Your chart illuminates every domain of life. Explore each dimension below.
-        </p>
-      </FadeIn>
-
-      {/* Tab bar */}
-      <FadeIn delay={100}>
-        <div className="deep-tab-bar">
-          {DEEP_TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`deep-tab-btn${deepTab === tab.id ? ' active' : ''}`}
-              style={deepTab === tab.id
-                ? { '--da': tab.accent } as React.CSSProperties
-                : undefined}
-              onClick={() => setDeepTab(tab.id)}
-            >
-              <span className="deep-tab-icon">{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </FadeIn>
-
-      {/* Active panel */}
-      <DeepPanel key={deepTab} section={activeSection} accent={activeTab.accent} />
-    </section>
-  );
-}
-
 /* ─────────────────────────────────────────────────────────────────
    Page section navigation (sticky left sidebar)
 ───────────────────────────────────────────────────────────────── */
 const NAV_SECTIONS = [
-  { id: 'sec-overview',  label: 'Overview',      icon: '✦', locked: false },
-  { id: 'sec-synthesis', label: 'Synthesis',      icon: '◈', locked: false },
-  { id: 'sec-general',   label: 'General',        icon: '✧', locked: true },
-  { id: 'sec-love',      label: 'Love',           icon: '♡', locked: true },
-  { id: 'sec-career',    label: 'Career',         icon: '◈', locked: true },
-  { id: 'sec-health',    label: 'Health',         icon: '◎', locked: true },
-  { id: 'sec-pastlife',  label: 'Past Life',      icon: '∞', locked: true },
+  { id: 'sec-overview',  label: 'Overview',  icon: '✦' },
+  { id: 'sec-synthesis', label: 'Synthesis', icon: '◈' },
+  { id: 'sec-general',   label: 'General',   icon: '✧' },
+  { id: 'sec-love',      label: 'Love',      icon: '♡' },
+  { id: 'sec-career',    label: 'Career',    icon: '◈' },
+  { id: 'sec-health',    label: 'Health',    icon: '◎' },
+  { id: 'sec-pastlife',  label: 'Past Life', icon: '∞' },
 ] as const;
 
 function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOpen: () => void; onReturn: () => void }) {
   const [active, setActive] = useState(NAV_SECTIONS[0].id as string);
 
   useEffect(() => {
-    const unlocked = NAV_SECTIONS.filter(s => !s.locked);
-    const els = unlocked.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const els = NAV_SECTIONS.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach(e => {
@@ -484,18 +429,11 @@ function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOp
       {NAV_SECTIONS.map(sec => (
         <button
           key={sec.id}
-          className={`sidenav-item${active === sec.id ? ' active' : ''}${sec.locked ? ' locked' : ''}`}
+          className={`sidenav-item${active === sec.id ? ' active' : ''}`}
           style={{ fontSize: '1rem' }}
-          onClick={() => {
-            if (sec.locked) {
-              // Scroll to the gate instead
-              document.querySelector('.gate-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-              scrollTo(sec.id);
-            }
-          }}
+          onClick={() => scrollTo(sec.id)}
         >
-          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.locked ? '🔒' : sec.icon}</span>
+          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.icon}</span>
           <span>{sec.label}</span>
         </button>
       ))}
@@ -719,10 +657,6 @@ export default function ReadingContent() {
   const [insightTab, setInsightTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [chatOpen, setChatOpen] = useState(true);
   const [activeCard, setActiveCard] = useState<string | null>(null);
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-
-  const handleSignup = () => setShowSignup(true);
 
   /* Close modal on Escape */
   useEffect(() => {
@@ -731,26 +665,6 @@ export default function ReadingContent() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [activeCard]);
-
-  /* Exit-intent: warn on tab close / back navigation */
-  useEffect(() => {
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    const onPopState = () => {
-      // Push state back so they stay on the page, then show our modal
-      window.history.pushState(null, '', window.location.href);
-      setShowExitModal(true);
-    };
-    // Push an extra history entry so back-button triggers popstate instead of leaving
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('beforeunload', onBeforeUnload);
-    window.addEventListener('popstate', onPopState);
-    return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload);
-      window.removeEventListener('popstate', onPopState);
-    };
-  }, []);
 
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
@@ -778,7 +692,7 @@ export default function ReadingContent() {
     );
   }
 
-  const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, cardDeepDives } = reading;
+  const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, deepAnalysis, cardDeepDives } = reading;
   const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
 
   const elemAccent: Record<string, string> = { Fire: '#333', Earth: '#444', Air: '#3a3a3a', Water: '#2a2a2a' };
@@ -866,7 +780,7 @@ export default function ReadingContent() {
                 Cosmic Coordinates
               </p>
               {name && (
-                <h1 className="font-display text-3xl sm:text-4xl font-semibold gradient-gold mb-2 tracking-wide">
+                <h1 className="font-display text-3xl sm:text-4xl font-semibold accent-heading mb-2 tracking-wide">
                   {name}
                 </h1>
               )}
@@ -880,7 +794,7 @@ export default function ReadingContent() {
               className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 rounded-2xl p-5 sm:p-8 relative overflow-hidden"
               style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid var(--border)' }}
             >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.4 }} />
+              <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: 'var(--gold)', opacity: 0.18 }} />
 
               {/* Left: Radar chart */}
               <div className="flex flex-col items-center justify-center">
@@ -900,8 +814,8 @@ export default function ReadingContent() {
                 <div>
                   <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-dim)' }}>Core Strengths</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {synthesis.coreStrengths.map(s => (
-                      <span key={s} className="pill" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.68rem' }}>{s}</span>
+                    {synthesis.coreStrengths.map((s, i) => (
+                      <span key={`${s}-${i}`} className="pill" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.68rem' }}>{s}</span>
                     ))}
                   </div>
                 </div>
@@ -922,7 +836,7 @@ export default function ReadingContent() {
                   onClick={() => setActiveCard(activeCard === card.id ? null : card.id)}
                 >
                   {/* thin top accent */}
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)`, opacity: 0.7 }} />
+                  <div style={{ position: 'absolute', top: 0, left: 18, right: 18, height: 1, background: card.accent, opacity: 0.28 }} />
 
                   {/* Icon + system name */}
                   <div className="flex items-center gap-2.5">
@@ -954,8 +868,8 @@ export default function ReadingContent() {
 
                   {/* Traits */}
                   <div className="flex flex-col gap-1 mt-auto pt-1" style={{ borderTop: '1px solid var(--line)' }}>
-                    {card.traits.map(t => (
-                      <span key={t} className="text-xs" style={{ color: 'var(--text-dim)' }}>— {t}</span>
+                    {card.traits.map((t, i) => (
+                      <span key={`${t}-${i}`} className="text-xs" style={{ color: 'var(--text-dim)' }}>— {t}</span>
                     ))}
                   </div>
 
@@ -976,7 +890,7 @@ export default function ReadingContent() {
                 onClick={(e) => { if (e.target === e.currentTarget) setActiveCard(null); }}
               >
                 <div className="card-modal" style={{ borderColor: `${dive.accent}30` }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${dive.accent}, transparent)`, opacity: 0.6, borderRadius: '16px 16px 0 0' }} />
+                  <div style={{ position: 'absolute', top: 0, left: 20, right: 20, height: 2, background: dive.accent, opacity: 0.28, borderRadius: '16px 16px 0 0' }} />
 
                   {/* Yin-Yang animation for Bazi */}
                   {activeCard === 'bazi' && (
@@ -1058,7 +972,7 @@ export default function ReadingContent() {
                 style={{ borderBottom: `1px solid ${domColor}1a` }}
               >
                 {/* Subtle accent line at top */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${domColor}, transparent)`, opacity: 0.5 }} />
+                <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: domColor, opacity: 0.22 }} />
 
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0"
@@ -1101,7 +1015,7 @@ export default function ReadingContent() {
                   <div>
                     <SectionLabel>Core Strengths</SectionLabel>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {synthesis.coreStrengths.map(s => <Tag key={s} label={s} accent={domColor} />)}
+                      {synthesis.coreStrengths.map((s, i) => <Tag key={`${s}-${i}`} label={s} accent={domColor} />)}
                     </div>
                   </div>
                   <div>
@@ -1122,9 +1036,9 @@ export default function ReadingContent() {
                   <div className="flex items-center justify-between mb-5">
                     <SectionLabel>Current Energies</SectionLabel>
                     <div className="flex gap-1.5">
-                      {(['daily', 'weekly', 'monthly'] as const).map(t => (
+                      {(['daily', 'weekly', 'monthly'] as const).map((t, i) => (
                         <button
-                          key={t}
+                          key={`${t}-${i}`}
                           className={`tab-btn ${insightTab === t ? 'active' : ''}`}
                           onClick={() => setInsightTab(t)}
                         >
@@ -1143,74 +1057,30 @@ export default function ReadingContent() {
           </FadeIn>
         </section>
 
-        {/* ══════════════════════════════════════════════════
-            GATED SECTIONS — skeleton placeholders only (no real data in DOM)
-        ══════════════════════════════════════════════════ */}
-        <div className="gate-wrap">
-          {/* Fake blurred content — no real reading data */}
-          <div className="gate-blur" aria-hidden="true">
-            {['General Reading', 'Love & Relationships'].map(label => (
-              <div key={label} style={{ marginBottom: '2rem' }}>
-                <SectionDivider label={label} />
-                <div className="rounded-2xl p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid var(--line)' }}>
-                  <div className="gate-skel" style={{ width: '40%', height: 14, marginBottom: 16 }} />
-                  <div className="gate-skel" style={{ width: '100%', height: 10, marginBottom: 10 }} />
-                  <div className="gate-skel" style={{ width: '95%', height: 10, marginBottom: 10 }} />
-                  <div className="gate-skel" style={{ width: '88%', height: 10, marginBottom: 10 }} />
-                  <div className="gate-skel" style={{ width: '72%', height: 10, marginBottom: 24 }} />
-                  <div className="gate-skel" style={{ width: '50%', height: 14, marginBottom: 16 }} />
-                  <div className="gate-skel" style={{ width: '100%', height: 10, marginBottom: 10 }} />
-                  <div className="gate-skel" style={{ width: '90%', height: 10, marginBottom: 10 }} />
-                  <div className="gate-skel" style={{ width: '60%', height: 10 }} />
-                </div>
-              </div>
-            ))}
-          </div>
+        <section id="sec-general">
+          <FadeIn><SectionDivider label="General Reading" /></FadeIn>
+          <DeepPanel section={deepAnalysis.general} accent={DEEP_TABS[0].accent} />
+        </section>
 
-          {/* CTA overlay */}
-          <div className="gate-overlay">
-            <div className="gate-card">
-              <div className="gate-glow" />
-              <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>
-                ✦ There&apos;s More to Discover
-              </p>
-              <h3 className="font-display text-xl sm:text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
-                {name ? `${name}, unlock` : 'Unlock'} your full reading
-              </h3>
-              <p className="text-sm mb-2" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 440 }}>
-                Your Love, Career, Health &amp; Past Life analyses are waiting. Create a free account to see everything — and come back anytime.
-              </p>
-              <ul className="gate-perks">
-                <li>Full deep-dive for all 5 life areas</li>
-                <li>Save &amp; revisit your chart from any device</li>
-                <li>Daily, weekly &amp; monthly cosmic insights</li>
-                <li>Unlimited access to the AI Oracle</li>
-              </ul>
-              <button className="signup-cta-btn primary" style={{ marginTop: 8 }} onClick={handleSignup}>
-                Create Free Account
-              </button>
-              <p className="text-xs mt-3" style={{ color: 'var(--text-dim)' }}>
-                No credit card required · Takes 10 seconds
-              </p>
-            </div>
-          </div>
-        </div>
+        <section id="sec-love">
+          <FadeIn><SectionDivider label="Love & Relationships" /></FadeIn>
+          <LovePanel love={deepAnalysis.love} />
+        </section>
 
-        {/* Hidden until unlocked — Career, Health, Past Life */}
-        {/*
         <section id="sec-career">
           <FadeIn><SectionDivider label="Career & Finance" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.careerFinance} accent="#9B59D6" />
+          <DeepPanel section={deepAnalysis.careerFinance} accent={DEEP_TABS[2].accent} />
         </section>
+
         <section id="sec-health">
           <FadeIn><SectionDivider label="Health & Vitality" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.health} accent="#7B3FA0" />
+          <DeepPanel section={deepAnalysis.health} accent={DEEP_TABS[3].accent} />
         </section>
+
         <section id="sec-pastlife">
           <FadeIn><SectionDivider label="Past Life & Soul Purpose" /></FadeIn>
-          <DeepPanel section={reading.deepAnalysis.pastLife} accent="#B88AE8" />
+          <DeepPanel section={deepAnalysis.pastLife} accent={DEEP_TABS[4].accent} />
         </section>
-        */}
 
       </div>
 
@@ -1225,83 +1095,6 @@ export default function ReadingContent() {
       </footer>
 
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} name={name} reading={reading} />
-
-      {/* ── Exit-intent modal ── */}
-      {showExitModal && (
-        <div
-          className="exit-modal-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowExitModal(false); }}
-        >
-          <div className="exit-modal">
-            <div className="gate-glow" />
-            <p className="text-3xl mb-4">🔮</p>
-            <h3 className="font-display text-lg sm:text-xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
-              Wait — your reading will be lost
-            </h3>
-            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)', lineHeight: 1.85, maxWidth: 380 }}>
-              If you leave now, your personalized chart disappears forever. Create a free account to save it and come back anytime.
-            </p>
-            <div className="flex flex-col gap-2.5 w-full" style={{ maxWidth: 280, margin: '0 auto' }}>
-              <button className="signup-cta-btn primary w-full" onClick={() => { setShowExitModal(false); handleSignup(); }}>
-                Save My Reading
-              </button>
-              <button
-                className="signup-cta-btn secondary w-full"
-                onClick={() => {
-                  setShowExitModal(false);
-                  router.push('/');
-                }}
-              >
-                Leave Anyway
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Signup modal ── */}
-      {showSignup && (
-        <div
-          className="exit-modal-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowSignup(false); }}
-        >
-          <div className="exit-modal" style={{ maxWidth: 400 }}>
-            <div className="gate-glow" />
-            <button
-              onClick={() => setShowSignup(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors hover:scale-110"
-              style={{ background: 'var(--surface)', color: 'var(--text-dim)', border: '1px solid var(--line)' }}
-              aria-label="Close"
-            >×</button>
-            <p className="text-2xl mb-3">✦</p>
-            <h3 className="font-display text-lg sm:text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
-              Create Your Account
-            </h3>
-            <form onSubmit={(e) => { e.preventDefault(); setShowSignup(false); }} className="flex flex-col gap-3 w-full" style={{ maxWidth: 300, margin: '0 auto' }}>
-              <input
-                type="email"
-                required
-                placeholder="Email address"
-                autoFocus
-                className="signup-input"
-              />
-              <input
-                type="password"
-                required
-                minLength={8}
-                placeholder="Create password"
-                className="signup-input"
-              />
-              <button type="submit" className="signup-cta-btn primary w-full" style={{ marginTop: 4 }}>
-                Create Account
-              </button>
-            </form>
-            <p className="text-xs mt-4" style={{ color: 'var(--text-dim)' }}>
-              No credit card required · Your reading will be saved
-            </p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

@@ -37,7 +37,7 @@ export default function StarField() {
         style={{
           width: '600px', height: '600px',
           top: '-200px', left: '-200px',
-          background: 'radial-gradient(circle, rgba(0,0,0,0.03) 0%, transparent 70%)',
+          background: 'rgba(120, 102, 72, 0.05)',
           animationDuration: '14s',
         }}
       />
@@ -46,7 +46,7 @@ export default function StarField() {
         style={{
           width: '500px', height: '500px',
           bottom: '-150px', right: '-150px',
-          background: 'radial-gradient(circle, rgba(0,0,0,0.02) 0%, transparent 70%)',
+          background: 'rgba(120, 102, 72, 0.04)',
           animationDuration: '18s',
           animationDelay: '6s',
         }}

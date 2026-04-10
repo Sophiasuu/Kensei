@@ -15,26 +15,26 @@ type PetalDef = {
   tier: 1 | 2 | 3;
   angle: number;
   d: string;
-  grad: string;
+  fill: string;
 };
 
 const PETALS: PetalDef[] = [
   // Tier 3 — outer ring
-  { tier: 3, angle: -62, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle:  62, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle: -48, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle:  48, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle: -34, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle:  34, d: WIDE_D, grad: 'gO' },
-  { tier: 3, angle: -18, d: MED_D,  grad: 'gO' },
-  { tier: 3, angle:  18, d: MED_D,  grad: 'gO' },
+  { tier: 3, angle: -62, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle:  62, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle: -48, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle:  48, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle: -34, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle:  34, d: WIDE_D, fill: '#d8d1c6' },
+  { tier: 3, angle: -18, d: MED_D,  fill: '#d8d1c6' },
+  { tier: 3, angle:  18, d: MED_D,  fill: '#d8d1c6' },
   // Tier 2 — inner ring
-  { tier: 2, angle: -22, d: MED_D, grad: 'gI' },
-  { tier: 2, angle:  22, d: MED_D, grad: 'gI' },
-  { tier: 2, angle:  -8, d: MED_D, grad: 'gI' },
-  { tier: 2, angle:   8, d: MED_D, grad: 'gI' },
+  { tier: 2, angle: -22, d: MED_D, fill: '#e4ddd3' },
+  { tier: 2, angle:  22, d: MED_D, fill: '#e4ddd3' },
+  { tier: 2, angle:  -8, d: MED_D, fill: '#e4ddd3' },
+  { tier: 2, angle:   8, d: MED_D, fill: '#e4ddd3' },
   // Tier 1 — core
-  { tier: 1, angle: 0, d: CORE_D, grad: 'gC' },
+  { tier: 1, angle: 0, d: CORE_D, fill: '#f1ede6' },
 ];
 
 const STEM_D = `M${CX},${CY} Q${CX - 2},${CY + 22} ${CX},${CY + 48}`;
@@ -71,37 +71,14 @@ function LotusBloom({ size = 240 }: { size?: number }) {
           viewBox="0 0 200 210"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <radialGradient id="lotus-aura">
-              <stop offset="0%" stopColor="#8C7AAE" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#8C7AAE" stopOpacity="0" />
-            </radialGradient>
-            <linearGradient id="gC" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#E8E6E3" />
-              <stop offset="100%" stopColor="#A8A4A0" />
-            </linearGradient>
-            <linearGradient id="gI" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#D8D5D2" />
-              <stop offset="100%" stopColor="#908C88" />
-            </linearGradient>
-            <linearGradient id="gO" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#CCCAC7" />
-              <stop offset="100%" stopColor="#787572" />
-            </linearGradient>
-            <linearGradient id="gStem" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#B0ADA8" />
-              <stop offset="100%" stopColor="#8A8784" />
-            </linearGradient>
-          </defs>
-
           {/* Aura glow */}
-          <circle cx={CX} cy={CY - 20} r={80} fill="url(#lotus-aura)" />
+          <circle cx={CX} cy={CY - 20} r={80} fill="rgba(134,100,40,0.05)" />
 
           {/* Stem */}
           <path
             className="lotus-stem"
             d={STEM_D}
-            stroke="url(#gStem)"
+            stroke="#9b948b"
             strokeWidth={1.8}
             fill="none"
             strokeLinecap="round"
@@ -122,7 +99,7 @@ function LotusBloom({ size = 240 }: { size?: number }) {
             >
               <path
                 d={p.d}
-                fill={`url(#${p.grad})`}
+                fill={p.fill}
                 stroke="rgba(46,42,39,0.25)"
                 strokeWidth={0.7}
                 strokeLinecap="round"

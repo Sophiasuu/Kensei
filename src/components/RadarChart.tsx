@@ -64,18 +64,8 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
         role="img"
         aria-label="Cosmic profile radar chart"
       >
-        <defs>
-          <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(0,0,0,0.04)" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-          </radialGradient>
-          <filter id="radar-blur">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" />
-          </filter>
-        </defs>
-
         {/* Background glow */}
-        <circle cx={CX} cy={CY} r={R + 10} fill="url(#radar-glow)" />
+        <circle cx={CX} cy={CY} r={R + 10} fill="rgba(134, 100, 40, 0.04)" />
 
         {/* Grid rings */}
         {RINGS.map(pct => (
@@ -108,7 +98,6 @@ export default function RadarChart({ profile }: { profile: CosmicProfile }) {
           points={polygonPoints(animatedValues)}
           fill="rgba(0,0,0,0.06)"
           stroke="none"
-          filter="url(#radar-blur)"
         />
 
         {/* Data shape — main fill */}
