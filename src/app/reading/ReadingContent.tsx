@@ -334,17 +334,11 @@ export default function ReadingContent() {
       <StarField />
 
       {/* Co-Star style floating background illustrations */}
-      <div className="mystic-bg-illustration" style={{ top: '8%', right: '3%', width: 420, height: 420, animationDuration: '20s' }}>
+      <div className="mystic-bg-illustration" style={{ top: '2%', left: '2%', width: 420, height: 420, animationDuration: '20s' }}>
         <img src="/illustrations/zodiac-wheel.png" alt="" width={420} height={420} draggable={false} />
-      </div>
-      <div className="mystic-bg-illustration" style={{ top: '2%', left: '2%', width: 360, height: 360, animationDuration: '24s', animationDelay: '4s' }}>
-        <img src="/illustrations/moon-goddess.png" alt="" width={360} height={360} draggable={false} />
       </div>
       <div className="mystic-bg-illustration" style={{ bottom: '3%', right: '3%', width: 340, height: 340, animationDuration: '18s', animationDelay: '7s' }}>
         <img src="/illustrations/hourglass.png" alt="" width={340} height={340} draggable={false} />
-      </div>
-      <div className="mystic-bg-illustration" style={{ top: '75%', left: '3%', width: 320, height: 320, animationDuration: '22s', animationDelay: '2s' }}>
-        <img src="/illustrations/potion-bottle.png" alt="" width={320} height={320} draggable={false} />
       </div>
 
       <div className="report-shell space-y-12">
@@ -593,6 +587,14 @@ export default function ReadingContent() {
                 {DEEP_TABS.map((tab) => (
                   <span key={tab.id} className="report-chip">{tab.label}</span>
                 ))}
+              </div>
+              <div className="relative mt-8" style={{ minHeight: 600 }}>
+                <div style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <MysticIllustration name="potion-bottle" placement="inline" size={260} opacity={0.35} />
+                </div>
+                <div style={{ position: 'absolute', bottom: 0, right: 0 }}>
+                  <MysticIllustration name="moon-goddess" placement="inline" size={280} opacity={0.35} />
+                </div>
               </div>
             </div>
           </FadeIn>
