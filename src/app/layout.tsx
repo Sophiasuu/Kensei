@@ -1,26 +1,37 @@
-import type { Metadata } from 'next';
-import { Cormorant_Garamond, Jost } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Commissioner, Prata } from 'next/font/google';
 import { LanguageProvider } from '@/context/LanguageContext';
-import Splash from '@/components/Splash';
 import './globals.css';
 
-const cormorant = Cormorant_Garamond({ subsets: ['latin'], variable: '--font-cormorant', weight: ['400', '600'], style: ['normal', 'italic'] });
-const jost = Jost({ subsets: ['latin'], variable: '--font-jost', weight: ['300', '400', '500', '600'] });
+const display = Prata({
+  subsets: ['latin'],
+  variable: '--font-brand-display',
+  weight: ['400'],
+});
+
+const body = Commissioner({
+  subsets: ['latin'],
+  variable: '--font-brand-body',
+  weight: ['300', '400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
-  title: 'Psychic Central — Your Complete Cosmic Blueprint',
-  description: 'A unified reading across Western Astrology, Vedic Astrology, Bazi Four Pillars, and Numerology.',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
+  title: 'Psychic Central | Ceremonial Multi-System Readings',
+  description:
+    'Instant ceremonial readings woven from Western astrology, Vedic astrology, Bazi, and numerology.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
-        <Splash />
-        <div className="splash-content">
-          <LanguageProvider>{children}</LanguageProvider>
-        </div>
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

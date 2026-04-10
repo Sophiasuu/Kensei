@@ -1,1101 +1,644 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useMemo, useState } from 'react';
-import StarField from '@/components/StarField';
+import { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import FadeIn from '@/components/FadeIn';
 import RadarChart from '@/components/RadarChart';
+import StarField from '@/components/StarField';
 import { generateFullReading } from '@/lib/reading';
-import { useLanguage } from '@/context/LanguageContext';
-import YinYang from '@/components/YinYang';
-import type { FullReading, PeriodInsight, DeepSection, LoveSection, CardDeepDive } from '@/types';
+import type { CardDeepDive, DeepSection, FullReading, LoveSection, PeriodInsight } from '@/types';
 
-/* ─────────────────────────────────────────────────────────────────
-   Vertical icons — distinct glyphs for each tradition
-───────────────────────────────────────────────────────────────── */
-const ICONS = {
-  western:    '☽',   // Crescent moon / celestial
-  vedic:      'ॐ',   // Om — Sanskrit symbol for Vedic tradition
-  bazi:       '命',   // Mìng — destiny/fate in Chinese
-  numerology: '∞',   // Infinity
-} as const;
+type ForecastKey = 'daily' | 'weekly' | 'monthly';
+type DeepKey = 'general' | 'love' | 'careerFinance' | 'health' | 'pastLife';
+type SystemKey = 'western' | 'vedic' | 'bazi' | 'numerology';
 
-/* ─────────────────────────────────────────────────────────────────
-   Shared primitives
-───────────────────────────────────────────────────────────────── */
-function Tag({ label, accent }: { label: string; accent?: string }) {
-  return (
-    <span
-      className="pill"
-      style={{
-        background: accent ? `${accent}13` : 'var(--surface)',
-        border: `1px solid ${accent ? `${accent}30` : 'var(--border)'}`,
-        color: accent ?? 'var(--text-muted)',
-      }}
-    >
-      {label}
-    </span>
-  );
-}
+const SYSTEM_ICONS: Record<SystemKey, string> = {
+  western: '☽',
+  vedic: 'ॐ',
+  bazi: '命',
+  numerology: '∞',
+};
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: 'var(--text-muted)' }}>
-      {children}
-    </p>
-  );
-}
+const SYSTEM_ACCENTS: Record<SystemKey, string> = {
+  western: 'oklch(55% 0.08 42)',
+  vedic: 'oklch(53% 0.08 150)',
+  bazi: 'oklch(43% 0.04 45)',
+  numerology: 'oklch(64% 0.08 22)',
+};
 
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="section-sep">
-      <span className="section-sep-label">{label}</span>
-    </div>
-  );
-}
+const FORECAST_LABELS: Record<ForecastKey, string> = {
+  daily: 'Daily Pulse',
+  weekly: 'Weekly Drift',
+  monthly: 'Monthly Arc',
+};
 
-/* ─────────────────────────────────────────────────────────────────
-   Insight panel (daily / weekly / monthly)
-───────────────────────────────────────────────────────────────── */
-function InsightPanel({ insight, personalYear }: { insight: PeriodInsight; personalYear: number }) {
-  return (
-    <div className="space-y-5">
-      <div className="flex items-start gap-4">
-        <div className="num-badge flex-shrink-0" style={{ width: 44, height: 44, fontSize: '1rem' }}>{insight.number}</div>
-        <div>
-          <p className="text-xs tracking-widest uppercase mb-0.5" style={{ color: 'var(--text-muted)' }}>
-            Personal {insight.period.charAt(0).toUpperCase() + insight.period.slice(1)} · Year {personalYear}
-          </p>
-          <h3 className="font-display text-base font-semibold" style={{ color: 'var(--gold)' }}>{insight.theme}</h3>
-        </div>
-      </div>
-
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.9 }}>{insight.guidance}</p>
-
-      <div>
-        <SectionLabel>Opportunities</SectionLabel>
-        <ul className="mt-2 space-y-1.5">
-          {insight.opportunities.map((opp, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-              <span style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 3 }}>—</span>{opp}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="rounded-xl p-4" style={{ background: 'rgba(194,138,12,0.08)', border: '1px solid rgba(141,92,0,0.12)' }}>
-        <SectionLabel>Watch for</SectionLabel>
-        <p className="text-sm leading-relaxed mt-1" style={{ color: 'var(--text-muted)' }}>{insight.watchFor}</p>
-      </div>
-
-      {insight.affirmation && (
-        <div className="rounded-xl p-4 text-center" style={{ background: 'var(--gold-dim)', border: '1px solid var(--border-gold)' }}>
-          <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--gold)' }}>Affirmation</p>
-          <p className="font-display text-sm italic" style={{ color: 'var(--gold-light)' }}>&ldquo;{insight.affirmation}&rdquo;</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Deep Analysis — sectional life-area panels
-───────────────────────────────────────────────────────────────── */
-const DEEP_TABS = [
-  { id: 'general'       as const, label: 'General',        icon: '✦', accent: '#9d6300' },
-  { id: 'love'          as const, label: 'Love',            icon: '♡', accent: '#c47d00' },
-  { id: 'careerFinance' as const, label: 'Career',          icon: '◈', accent: '#bf7d00' },
-  { id: 'health'        as const, label: 'Health',          icon: '◎', accent: '#9b7600' },
-  { id: 'pastLife'      as const, label: 'Past Life',       icon: '∞', accent: '#d18b00' },
-] as const;
-
-import type { DeepAnalysis } from '@/types';
-
-function DeepPanel({ section, accent }: { section: DeepSection; accent: string }) {
-  return (
-    <div className="space-y-5 mt-6">
-      {/* Overview */}
-      <FadeIn>
-        <div
-          className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'var(--paper-strong)', border: `1px solid ${accent}24`, boxShadow: '0 16px 42px rgba(110,82,28,0.08)' }}
-        >
-          <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: accent, opacity: 0.3 }} />
-          <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
-            {section.overview}
-          </p>
-        </div>
-      </FadeIn>
-
-      {/* 4 Tradition lenses */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        {section.lenses.map((lens, i) => (
-          <FadeIn key={lens.tradition} delay={i * 55}>
-            <div
-              className="rounded-xl p-5 h-full relative overflow-hidden"
-              style={{ background: `${lens.accent}09`, border: `1px solid ${lens.accent}20` }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: lens.accent, opacity: 0.35 }} />
-              <div className="flex items-center gap-2 mb-3">
-                <span style={{ color: lens.accent, fontSize: '1rem', lineHeight: 1 }}>{lens.icon}</span>
-                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: lens.accent, letterSpacing: '0.12em' }}>
-                  {lens.tradition}
-                </p>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
-                {lens.insight}
-              </p>
-            </div>
-          </FadeIn>
-        ))}
-      </div>
-
-      {/* Key themes */}
-      <FadeIn delay={80}>
-        <div
-          className="rounded-xl p-5"
-          style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}
-        >
-          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.18em' }}>
-            Key Themes
-          </p>
-          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-            {section.themes.map((theme, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <span style={{ color: accent, flexShrink: 0, marginTop: 2, fontSize: '0.6rem' }}>◆</span>
-                <span className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{theme}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* Guidance */}
-      <FadeIn delay={120}>
-        <div
-          className="rounded-xl p-6"
-          style={{ background: `${accent}0e`, border: `1px solid ${accent}2c` }}
-        >
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: accent, letterSpacing: '0.18em' }}>
-            Guidance
-          </p>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
-            {section.guidance}
-          </p>
-        </div>
-      </FadeIn>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Love Panel — expanded premium love section
-───────────────────────────────────────────────────────────────── */
-function LovePanel({ love }: { love: LoveSection }) {
-  const accent = '#c47d00';
-  return (
-    <div className="space-y-6 mt-6">
-
-      {/* ── Overview ── */}
-      <FadeIn>
-        <div
-          className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-          style={{ background: 'var(--paper-strong)', border: `1px solid ${accent}24`, boxShadow: '0 16px 42px rgba(110,82,28,0.08)' }}
-        >
-          <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: accent, opacity: 0.3 }} />
-          <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
-            {love.overview}
-          </p>
-        </div>
-      </FadeIn>
-
-      {/* ── Your Love Style — visual card ── */}
-      <FadeIn delay={40}>
-        <div className="love-style-card">
-          <div className="love-style-header">
-            <div className="love-style-icon">♡</div>
-            <div>
-              <p className="love-style-mode">{love.loveStyle.mode}</p>
-              <p className="love-style-subtitle">Your Love Style</p>
-            </div>
-          </div>
-          <div className="love-style-langs">
-            {love.loveStyle.languages.map((lang, i) => (
-              <span key={i} className="love-lang-tag">{lang}</span>
-            ))}
-          </div>
-          <div className="love-style-grid">
-            <div className="love-style-cell">
-              <p className="love-cell-label">Attraction Energy</p>
-              <p className="love-cell-text">{love.loveStyle.attractionEnergy}</p>
-            </div>
-            <div className="love-style-cell">
-              <p className="love-cell-label">Commitment Style</p>
-              <p className="love-cell-text">{love.loveStyle.commitmentStyle}</p>
-            </div>
-            <div className="love-style-cell">
-              <p className="love-cell-label">In Conflict</p>
-              <p className="love-cell-text">{love.loveStyle.conflictStyle}</p>
-            </div>
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* ── Your Ideal Partner — visual card ── */}
-      <FadeIn delay={80}>
-        <div className="partner-card">
-          <div className="partner-header">
-            <div className="partner-icon-wrap">
-              <span className="partner-icon">✦</span>
-            </div>
-            <div>
-              <p className="partner-archetype">{love.partnerProfile.archetype}</p>
-              <p className="partner-element">Complementary Energy: {love.partnerProfile.element}</p>
-            </div>
-          </div>
-          <p className="partner-desc">{love.partnerProfile.dynamicDescription}</p>
-          <div className="partner-traits">
-            {love.partnerProfile.traits.map((t, i) => (
-              <span key={i} className="partner-trait-tag">{t}</span>
-            ))}
-          </div>
-          <div className="partner-section">
-            <p className="partner-section-label">What They Bring</p>
-            <p className="partner-section-text">{love.partnerProfile.whatTheyBring}</p>
-          </div>
-          <div className="partner-recognition">
-            <p className="partner-section-label">How You&apos;ll Recognise Them</p>
-            <p className="partner-section-text">{love.partnerProfile.recognitionSign}</p>
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* ── Love Timeline — visual timeline ── */}
-      <FadeIn delay={120}>
-        <div className="love-timeline-card">
-          <p className="love-timeline-title">Love Timeline</p>
-          <p className="love-timeline-subtitle">Key periods shaping your romantic destiny</p>
-          <div className="love-timeline-track">
-            {love.timelines.map((tl, i) => (
-              <div key={i} className="love-tl-item">
-                <div className="love-tl-dot-wrap">
-                  <div className="love-tl-dot" />
-                  {i < love.timelines.length - 1 && <div className="love-tl-line" />}
-                </div>
-                <div className="love-tl-content">
-                  <div className="love-tl-header">
-                    <span className="love-tl-period">{tl.period}</span>
-                    <span className="love-tl-theme">{tl.theme}</span>
-                  </div>
-                  <p className="love-tl-desc">{tl.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* ── 4 Tradition Lenses ── */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        {love.lenses.map((lens, i) => (
-          <FadeIn key={lens.tradition} delay={160 + i * 55}>
-            <div
-              className="rounded-xl p-5 h-full relative overflow-hidden"
-              style={{ background: `${lens.accent}09`, border: `1px solid ${lens.accent}20` }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: lens.accent, opacity: 0.35 }} />
-              <div className="flex items-center gap-2 mb-3">
-                <span style={{ color: lens.accent, fontSize: '1rem', lineHeight: 1 }}>{lens.icon}</span>
-                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: lens.accent, letterSpacing: '0.12em' }}>
-                  {lens.tradition}
-                </p>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)', lineHeight: 1.85 }}>
-                {lens.insight}
-              </p>
-            </div>
-          </FadeIn>
-        ))}
-      </div>
-
-      {/* ── Compatibility & Red Flags side by side ── */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        <FadeIn delay={200}>
-          <div className="love-compat-card">
-            <p className="love-mini-label" style={{ color: 'var(--text-muted)' }}>Compatible Energies</p>
-            <div className="love-compat-elements">
-              {love.compatibilityElements.map((el, i) => (
-                <span key={i} className="compat-el-tag">{el}</span>
-              ))}
-            </div>
-          </div>
-        </FadeIn>
-        <FadeIn delay={240}>
-          <div className="love-redflag-card">
-            <p className="love-mini-label" style={{ color: 'var(--text-muted)' }}>Patterns to Avoid</p>
-            <div className="love-redflags">
-              {love.redFlags.map((rf, i) => (
-                <div key={i} className="love-rf-item">
-                  <span className="love-rf-icon">⚠</span>
-                  <span>{rf}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-
-      {/* ── Themes ── */}
-      <FadeIn delay={260}>
-        <div
-          className="rounded-xl p-5"
-          style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}
-        >
-          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--text-dim)', letterSpacing: '0.18em' }}>
-            Key Themes
-          </p>
-          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-            {love.themes.map((theme, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <span style={{ color: accent, flexShrink: 0, marginTop: 2, fontSize: '0.6rem' }}>◆</span>
-                <span className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{theme}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </FadeIn>
-
-      {/* ── Guidance ── */}
-      <FadeIn delay={300}>
-        <div
-          className="rounded-xl p-6"
-          style={{ background: `${accent}0e`, border: `1px solid ${accent}2c` }}
-        >
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: accent, letterSpacing: '0.18em' }}>
-            Guidance
-          </p>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
-            {love.guidance}
-          </p>
-        </div>
-      </FadeIn>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Page section navigation (sticky left sidebar)
-───────────────────────────────────────────────────────────────── */
-const NAV_SECTIONS = [
-  { id: 'sec-overview',  label: 'Overview',  icon: '✦' },
-  { id: 'sec-synthesis', label: 'Synthesis', icon: '◈' },
-  { id: 'sec-general',   label: 'General',   icon: '✧' },
-  { id: 'sec-love',      label: 'Love',      icon: '♡' },
-  { id: 'sec-career',    label: 'Career',    icon: '◈' },
-  { id: 'sec-health',    label: 'Health',    icon: '◎' },
-  { id: 'sec-pastlife',  label: 'Past Life', icon: '∞' },
-] as const;
-
-function SideNav({ name, onChatOpen, onReturn }: { name: string | null; onChatOpen: () => void; onReturn: () => void }) {
-  const [active, setActive] = useState(NAV_SECTIONS[0].id as string);
-
-  useEffect(() => {
-    const els = NAV_SECTIONS.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) setActive(e.target.id);
-        });
-      },
-      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
-    );
-    els.forEach(el => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 80;
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  };
-
-  return (
-    <nav className="reading-sidenav" aria-label="Page sections" style={{ fontSize: '1rem' }}>
-      <button className="sidenav-return-btn" style={{ fontSize: '0.95rem' }} onClick={onReturn}>← Return</button>
-      {name && <p className="sidenav-name" style={{ fontSize: '1.15rem' }}>{name}</p>}
-      <div className="sidenav-divider" />
-      <p className="sidenav-title" style={{ fontSize: '0.8rem' }}>Sections</p>
-      {NAV_SECTIONS.map(sec => (
-        <button
-          key={sec.id}
-          className={`sidenav-item${active === sec.id ? ' active' : ''}`}
-          style={{ fontSize: '1rem' }}
-          onClick={() => scrollTo(sec.id)}
-        >
-          <span className="sidenav-item-icon" style={{ fontSize: '1.15rem' }}>{sec.icon}</span>
-          <span>{sec.label}</span>
-        </button>
-      ))}
-      <div style={{ flex: 1 }} />
-      <div className="sidenav-divider" />
-      <button className="sidenav-oracle-btn" style={{ fontSize: '1rem' }} onClick={onChatOpen}>
-        <span>✦</span>
-        Ask Oracle
-      </button>
-    </nav>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   Cosmic Advisor chat panel
-───────────────────────────────────────────────────────────────── */
-type ChatMessage = { role: 'user' | 'oracle'; text: string; id: number };
-
-const CHAT_SUGGESTIONS = [
-  'What is my greatest strength?',
-  'Tell me about my love life',
-  'What career suits my chart?',
-  "What is my soul's purpose?",
+const DEEP_TABS: Array<{ id: DeepKey; label: string }> = [
+  { id: 'general', label: 'General' },
+  { id: 'love', label: 'Love' },
+  { id: 'careerFinance', label: 'Career' },
+  { id: 'health', label: 'Health' },
+  { id: 'pastLife', label: 'Past Life' },
 ];
 
-function renderMarkdown(text: string) {
-  const parts: React.ReactNode[] = [];
-  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g;
-  let last = 0;
-  let match: RegExpExecArray | null;
-  let key = 0;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
-    if (match[1]) parts.push(<strong key={key++} style={{ color: 'var(--gold)' }}>{match[1]}</strong>);
-    else if (match[2]) parts.push(<em key={key++}>{match[2]}</em>);
-    last = match.index + match[0].length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts;
-}
-
-function ChatPanel({ open, onClose, name, reading }: { open: boolean; onClose: () => void; name: string | null; reading: FullReading }) {
-  const { lang } = useLanguage();
-  const [messages, setMessages] = useState<ChatMessage[]>([{
-    role: 'oracle',
-    text: `Greetings${name ? `, ${name}` : ''}. I have read your chart across four ancient traditions — Western, Vedic, Bazi, and Numerology. Ask me anything about your cosmic blueprint.`,
-    id: 0,
-  }]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const chartContext = useMemo(() => {
-    const { western, vedic, bazi, numerology, synthesis, cosmicProfile } = reading;
-    const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
-    return [
-      `Name: ${name ?? 'Unknown'}`,
-      `Western: ${western.sunSign.name} (${western.sunSign.element}, ${western.sunSign.modality}), ruled by ${western.sunSign.rulingPlanet}. Traits: ${western.sunSign.traits.join(', ')}`,
-      `Vedic: Rashi ${vedic.rashi.name} (${vedic.rashi.element}), Nakshatra ${vedic.nakshatra.name} (${vedic.nakshatra.englishMeaning}), Pada ${vedic.nakshatra.pada}`,
-      `Bazi Day Master: ${bazi.dayMaster.polarity} ${bazi.dayMaster.element}. Pillars: ${pillars.map(p => `${p.label}: ${p.stem.name}/${p.branch.animal}`).join(', ')}`,
-      `Numerology: Life Path ${numerology.lifePath.number}${numerology.lifePath.isMaster ? ' (Master)' : ''}, Personal Year ${numerology.personalYear}. Keywords: ${numerology.lifePath.keywords.join(', ')}`,
-      `Synthesis: Archetype "${synthesis.archetype}", Dominant Element: ${synthesis.dominantElement}, Essence: ${synthesis.essence}, Superpower: ${synthesis.superpower}`,
-      `Core Strengths: ${synthesis.coreStrengths.join(', ')}`,
-      `Growth Areas: ${synthesis.growthAreas.join(', ')}`,
-      `Cosmic Profile: Intuition ${cosmicProfile.intuition}, Ambition ${cosmicProfile.ambition}, Creativity ${cosmicProfile.creativity}, Discipline ${cosmicProfile.discipline}, Empathy ${cosmicProfile.empathy}, Wisdom ${cosmicProfile.wisdom}`,
-    ].join('\n');
-  }, [reading, name]);
-
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 350);
-  }, [open]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  async function send() {
-    if (!input.trim() || loading) return;
-    const text = input.trim();
-    const userMsg: ChatMessage = { role: 'user', text, id: Date.now() };
-    const updated = [...messages, userMsg];
-    setMessages(updated);
-    setInput('');
-    setLoading(true);
-
-    const oracleId = Date.now() + 1;
-
-    try {
-      const apiMessages = updated
-        .filter(m => m.id !== 0)
-        .map(m => ({ role: m.role, content: m.text }));
-
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, chartContext, lang }),
-      });
-
-      if (!res.ok || !res.body) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Request failed');
-      }
-
-      // Add empty oracle message, then stream into it
-      setMessages(prev => [...prev, { role: 'oracle', text: '', id: oracleId }]);
-      setLoading(false);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || !trimmed.startsWith('data: ')) continue;
-          const payload = trimmed.slice(6);
-          if (payload === '[DONE]') break;
-          try {
-            const json = JSON.parse(payload);
-            if (json.content) {
-              setMessages(prev =>
-                prev.map(m => m.id === oracleId ? { ...m, text: m.text + json.content } : m)
-              );
-            }
-          } catch { /* skip */ }
-        }
-      }
-    } catch {
-      setMessages(prev => [...prev, { role: 'oracle', text: 'A cosmic disturbance prevents my response. Please try again.', id: oracleId }]);
-      setLoading(false);
-    }
-  }
-
+function ForecastPanel({ insight, personalYear }: { insight: PeriodInsight; personalYear: number }) {
   return (
-    <>
-      <div className={`chat-panel${open ? ' open' : ''}`} role="complementary" aria-label="Cosmic advisor">
-        {/* Header */}
-        <div className="chat-header">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-              style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--text)' }}
-            >✦</div>
-            <div>
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--gold)', letterSpacing: '0.16em' }}>Cosmic Advisor</p>
-              <p className="text-xs" style={{ color: 'var(--text-dim)' }}>Powered by DeepSeek</p>
-            </div>
-          </div>
-          <button className="chat-close-btn" onClick={onClose} aria-label="Close chat">×</button>
-        </div>
-
-        {/* Messages */}
-        <div className="chat-messages">
-          {messages.map(msg => (
-            <div key={msg.id} className={`chat-bubble ${msg.role}`}>
-              {msg.role === 'oracle' && <p className="chat-oracle-label">✦ Oracle</p>}
-              {msg.text.split('\n').filter(Boolean).map((para, i) => (
-                <p key={i}>{renderMarkdown(para)}</p>
-              ))}
-            </div>
-          ))}
-          {loading && (
-            <div className="chat-bubble oracle">
-              <p className="chat-oracle-label">✦ Oracle</p>
-              <div className="chat-dots"><span /><span /><span /></div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {/* Suggestion pills */}
-        {messages.length === 1 && (
-          <div className="chat-suggestions">
-            {CHAT_SUGGESTIONS.map(s => (
-              <button
-                key={s}
-                className="chat-suggestion-btn"
-                onClick={() => { setInput(s); inputRef.current?.focus(); }}
-              >{s}</button>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
-        <div className="chat-input-area">
-          <textarea
-            ref={inputRef}
-            className="chat-input"
-            placeholder="Ask your cosmic advisor…"
-            value={input}
-            rows={1}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-          />
-          <button
-            className="chat-send-btn"
-            onClick={send}
-            disabled={!input.trim() || loading}
-            aria-label="Send"
-          >↑</button>
+    <div className="insight-panel space-y-6">
+      <div className="space-y-3">
+        <p className="section-kicker">{FORECAST_LABELS[insight.period]}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="report-chip">
+            <span className="report-chip-icon">{insight.number}</span>
+            Personal Year {personalYear}
+          </span>
+          <span className="report-chip">{insight.theme}</span>
         </div>
       </div>
-    </>
+
+      <p className="forecast-copy">{insight.guidance}</p>
+
+      <div className="forecast-grid">
+        <div className="forecast-card">
+          <p className="section-kicker mb-3">Opportunities</p>
+          <ul className="divider-list">
+            {insight.opportunities.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="forecast-card">
+          <p className="section-kicker mb-3">Watch For</p>
+          <p className="panel-copy max-w-none">{insight.watchFor}</p>
+        </div>
+      </div>
+
+      {insight.affirmation ? (
+        <div className="rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface-tint)] px-5 py-4">
+          <p className="section-kicker mb-3">Affirmation</p>
+          <p className="font-display text-xl leading-8 text-[var(--text-strong)]">“{insight.affirmation}”</p>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Main component
-───────────────────────────────────────────────────────────────── */
+function DeepSectionView({ section }: { section: DeepSection | LoveSection }) {
+  const love = 'loveStyle' in section ? section : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <p className="deep-copy">{section.overview}</p>
+      </div>
+
+      {love ? (
+        <div className="detail-grid">
+          <div className="summary-stat">
+            <p className="section-kicker mb-3">Love Style</p>
+            <p className="font-display text-2xl text-[var(--text-strong)]">{love.loveStyle.mode}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {love.loveStyle.languages.map((language) => (
+                <span key={language} className="pill-tag">{language}</span>
+              ))}
+            </div>
+            <div className="mt-4 space-y-3 text-sm leading-7 text-[var(--text-muted)]">
+              <p><strong className="text-[var(--text)]">Attraction:</strong> {love.loveStyle.attractionEnergy}</p>
+              <p><strong className="text-[var(--text)]">Commitment:</strong> {love.loveStyle.commitmentStyle}</p>
+              <p><strong className="text-[var(--text)]">Conflict:</strong> {love.loveStyle.conflictStyle}</p>
+            </div>
+          </div>
+
+          <div className="summary-stat">
+            <p className="section-kicker mb-3">Partner Pattern</p>
+            <p className="font-display text-2xl text-[var(--text-strong)]">{love.partnerProfile.archetype}</p>
+            <p className="mt-2 text-sm uppercase tracking-[0.16em] text-[var(--text-soft)]">
+              Complementary Element: {love.partnerProfile.element}
+            </p>
+            <p className="mt-4 panel-copy max-w-none">{love.partnerProfile.dynamicDescription}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {love.partnerProfile.traits.map((trait) => (
+                <span key={trait} className="pill-tag">{trait}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="lens-grid">
+        {section.lenses.map((lens) => (
+          <article key={lens.tradition} className="lens-card">
+            <div className="mb-3 flex items-center gap-2">
+              <span aria-hidden="true" style={{ color: lens.accent }}>{lens.icon}</span>
+              <p className="section-kicker" style={{ color: lens.accent }}>{lens.tradition}</p>
+            </div>
+            <p className="panel-copy max-w-none">{lens.insight}</p>
+          </article>
+        ))}
+      </div>
+
+      {love ? (
+        <div className="detail-grid">
+          <div className="summary-stat">
+            <p className="section-kicker mb-3">Love Timeline</p>
+            <div className="space-y-4">
+              {love.timelines.map((timeline) => (
+                <div key={`${timeline.period}-${timeline.theme}`} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                  <p className="section-kicker mb-2">{timeline.period}</p>
+                  <p className="font-display text-xl text-[var(--text-strong)]">{timeline.theme}</p>
+                  <p className="mt-2 panel-copy max-w-none">{timeline.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="summary-stat">
+            <p className="section-kicker mb-3">Relationship Signals</p>
+            <div className="space-y-4 text-sm leading-7 text-[var(--text-muted)]">
+              <p><strong className="text-[var(--text)]">What they bring:</strong> {love.partnerProfile.whatTheyBring}</p>
+              <p><strong className="text-[var(--text)]">How you’ll recognise them:</strong> {love.partnerProfile.recognitionSign}</p>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                <p className="section-kicker mb-3">Compatible Energies</p>
+                <div className="flex flex-wrap gap-2">
+                  {love.compatibilityElements.map((item) => (
+                    <span key={item} className="pill-tag">{item}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                <p className="section-kicker mb-3">Patterns To Avoid</p>
+                <ul className="divider-list">
+                  {love.redFlags.map((flag) => (
+                    <li key={flag}>{flag}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="detail-grid">
+        <div className="summary-stat">
+          <p className="section-kicker mb-3">Key Themes</p>
+          <ul className="divider-list">
+            {section.themes.map((theme) => (
+              <li key={theme}>{theme}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="summary-stat">
+          <p className="section-kicker mb-3">Guidance</p>
+          <p className="deep-copy">{section.guidance}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReadingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [insightTab, setInsightTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [chatOpen, setChatOpen] = useState(true);
-  const [activeCard, setActiveCard] = useState<string | null>(null);
-
-  /* Close modal on Escape */
-  useEffect(() => {
-    if (!activeCard) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActiveCard(null); };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [activeCard]);
+  const [activeSystem, setActiveSystem] = useState<SystemKey>('western');
+  const [activeForecast, setActiveForecast] = useState<ForecastKey>('daily');
+  const [activeDeep, setActiveDeep] = useState<DeepKey>('general');
 
   const name = searchParams.get('name');
   const dob = searchParams.get('dob');
   const tob = searchParams.get('tob') ?? undefined;
 
-  const reading: FullReading | null = useMemo(() => {
-    if (!dob) return null;
+  const { reading, birthDate } = useMemo(() => {
+    if (!dob) return { reading: null as FullReading | null, birthDate: null as Date | null };
+
     try {
-      const [y, m, d] = dob.split('-').map(Number);
-      const date = new Date(y, m - 1, d, 12, 0, 0);
-      if (isNaN(date.getTime())) return null;
-      return generateFullReading({ name: name ?? undefined, dateOfBirth: date, timeOfBirth: tob });
-    } catch { return null; }
-  }, [name, dob, tob]);
+      const [year, month, day] = dob.split('-').map(Number);
+      const nextDate = new Date(year, month - 1, day, 12, 0, 0);
+      if (Number.isNaN(nextDate.getTime())) {
+        return { reading: null as FullReading | null, birthDate: null as Date | null };
+      }
+
+      return {
+        reading: generateFullReading({
+          name: name ?? undefined,
+          dateOfBirth: nextDate,
+          timeOfBirth: tob,
+        }),
+        birthDate: nextDate,
+      };
+    } catch {
+      return { reading: null as FullReading | null, birthDate: null as Date | null };
+    }
+  }, [dob, name, tob]);
 
   if (!reading) {
     return (
-      <main className="relative min-h-screen flex flex-col items-center justify-center px-4">
+      <main className="relative min-h-screen overflow-hidden px-5 py-10 sm:px-8 lg:px-10">
         <StarField />
-        <div className="relative z-10 text-center">
-          <p className="mb-6" style={{ color: 'var(--text-muted)' }}>No birth data found.</p>
-          <button className="btn-gold" onClick={() => router.push('/')}>Return to Home</button>
+        <div className="report-shell flex min-h-[calc(100vh-5rem)] items-center justify-center">
+          <div className="empty-panel max-w-xl text-center">
+            <p className="eyebrow">Reading Unavailable</p>
+            <h1 className="mt-4 font-display text-[clamp(2.4rem,7vw,4.2rem)] leading-[0.98] text-[var(--text-strong)]">
+              No birth data was provided.
+            </h1>
+            <p className="mx-auto mt-5 max-w-[32rem] text-base leading-8 text-[var(--text-muted)]">
+              Return to the opening ritual, enter your birth details, and the report will generate instantly.
+            </p>
+            <button className="ritual-button mt-8" onClick={() => router.push('/')}>
+              Return Home
+            </button>
+          </div>
         </div>
       </main>
     );
   }
 
-  const { western, vedic, bazi, numerology, synthesis, daily, weekly, monthly, deepAnalysis, cardDeepDives } = reading;
-  const pillars = [bazi.yearPillar, bazi.monthPillar, bazi.dayPillar, ...(bazi.hourPillar ? [bazi.hourPillar] : [])];
+  const formattedDate = birthDate
+    ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(birthDate)
+    : null;
 
-  const elemAccent: Record<string, string> = { Fire: '#333', Earth: '#444', Air: '#3a3a3a', Water: '#2a2a2a' };
-  const domColor = elemAccent[synthesis.dominantElement] ?? '#333';
+  const pillars = [reading.bazi.yearPillar, reading.bazi.monthPillar, reading.bazi.dayPillar, ...(reading.bazi.hourPillar ? [reading.bazi.hourPillar] : [])];
 
-  /* ── Detail popover data for each tradition card (generated in reading pipeline) ── */
-  const cardDiveMap: Record<string, CardDeepDive> = {
-    western: cardDeepDives.western,
-    vedic: cardDeepDives.vedic,
-    bazi: cardDeepDives.bazi,
-    numerology: cardDeepDives.numerology,
+  const cardDiveMap: Record<SystemKey, CardDeepDive> = {
+    western: reading.cardDeepDives.western,
+    vedic: reading.cardDeepDives.vedic,
+    bazi: reading.cardDeepDives.bazi,
+    numerology: reading.cardDeepDives.numerology,
   };
 
-  /* ── Section 1: Four system glance cards ── */
-  const glanceCards = [
+  const forecastMap: Record<ForecastKey, PeriodInsight> = {
+    daily: reading.daily,
+    weekly: reading.weekly,
+    monthly: reading.monthly,
+  };
+
+  const deepMap: Record<DeepKey, DeepSection | LoveSection> = {
+    general: reading.deepAnalysis.general,
+    love: reading.deepAnalysis.love,
+    careerFinance: reading.deepAnalysis.careerFinance,
+    health: reading.deepAnalysis.health,
+    pastLife: reading.deepAnalysis.pastLife,
+  };
+
+  const systemSummaries = [
     {
-      id: 'western', icon: ICONS.western, accent: '#333',
-      system: 'Western', value: `${western.sunSign.symbol} ${western.sunSign.name}`,
-      sub: `${western.sunSign.element} · ${western.sunSign.modality}`,
-      meta: `Ruled by ${western.sunSign.rulingPlanet}`,
-      traits: western.sunSign.traits.slice(0, 3),
+      id: 'western' as const,
+      label: 'Western',
+      title: `${reading.western.sunSign.symbol} ${reading.western.sunSign.name}`,
+      meta: `${reading.western.sunSign.element}${reading.western.sunSign.modality ? ` · ${reading.western.sunSign.modality}` : ''}`,
+      text: reading.western.sunSign.description,
+      traitLabel: `Ruled by ${reading.western.sunSign.rulingPlanet}`,
+      traits: reading.western.sunSign.traits,
     },
     {
-      id: 'vedic', icon: ICONS.vedic, accent: '#444',
-      system: 'Vedic', value: vedic.rashi.name,
-      sub: `${vedic.rashi.element} · ${vedic.rashi.rulingPlanet}`,
-      meta: `${vedic.nakshatra.name} Nakshatra`,
-      traits: vedic.rashi.traits.slice(0, 3),
+      id: 'vedic' as const,
+      label: 'Vedic',
+      title: `${reading.vedic.rashi.name} · ${reading.vedic.nakshatra.name}`,
+      meta: `${reading.vedic.rashi.element} · ${reading.vedic.nakshatra.englishMeaning}`,
+      text: reading.vedic.nakshatra.description,
+      traitLabel: `${reading.vedic.nakshatra.deity} · ${reading.vedic.nakshatra.ruling}`,
+      traits: reading.vedic.rashi.traits,
     },
     {
-      id: 'bazi', icon: ICONS.bazi, accent: '#3a3a3a',
-      system: 'Bazi', value: `${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`,
-      sub: 'Day Master',
-      meta: `${bazi.dayPillar.stem.chinese}${bazi.dayPillar.branch.chinese} · ${bazi.yearPillar.branch.animal} Year`,
-      traits: bazi.dayMaster.traits.slice(0, 3),
+      id: 'bazi' as const,
+      label: 'Bazi',
+      title: `${reading.bazi.dayMaster.polarity} ${reading.bazi.dayMaster.element}`,
+      meta: `${reading.bazi.dayPillar.stem.chinese}${reading.bazi.dayPillar.branch.chinese} Day Master`,
+      text: reading.bazi.dayMaster.description,
+      traitLabel: `${reading.bazi.yearPillar.branch.animal} year influence`,
+      traits: reading.bazi.dayMaster.traits,
     },
     {
-      id: 'numerology', icon: ICONS.numerology, accent: '#4a4a4a',
-      system: 'Numerology',
-      value: numerology.lifePath.isMaster ? `Master ${numerology.lifePath.number}` : `Life Path ${numerology.lifePath.number}`,
-      sub: numerology.lifePath.keywords.slice(0, 2).join(' · '),
-      meta: `Personal Year ${numerology.personalYear}`,
-      traits: numerology.lifePath.traits.slice(0, 3),
+      id: 'numerology' as const,
+      label: 'Numerology',
+      title: reading.numerology.lifePath.isMaster
+        ? `Master ${reading.numerology.lifePath.number}`
+        : `Life Path ${reading.numerology.lifePath.number}`,
+      meta: `Personal Year ${reading.numerology.personalYear}`,
+      text: reading.numerology.lifePath.description,
+      traitLabel: reading.numerology.lifePath.challenge,
+      traits: reading.numerology.lifePath.keywords,
     },
   ];
 
+  const activeDive = cardDiveMap[activeSystem];
+  const activeInsight = forecastMap[activeForecast];
+  const activeDeepSection = deepMap[activeDeep];
+
   return (
-    <main className="reading-main relative min-h-screen pb-28">
+    <main className="relative min-h-screen overflow-hidden px-5 pb-20 pt-6 sm:px-8 lg:px-10">
       <StarField />
-      <SideNav name={name} onChatOpen={() => setChatOpen(true)} onReturn={() => router.push('/')} />
 
-      {/* ── Mobile top bar ──────────────────────────────── */}
-      <div className="reading-topnav-mobile">
-        <button
-          onClick={() => router.push('/')}
-          className="text-xs tracking-widest uppercase transition-opacity hover:opacity-50"
-          style={{ color: 'var(--text-dim)', letterSpacing: '0.18em' }}
-        >
-          ← Return
-        </button>
-        <div className="flex items-center gap-3">
-          {name && (
-            <span className="font-display text-sm tracking-widest" style={{ color: 'var(--text-muted)' }}>{name}</span>
-          )}
-        </div>
-        <button
-          className="chat-fab-mobile"
-          onClick={() => setChatOpen(true)}
-          aria-label="Open cosmic advisor"
-        >✦</button>
-      </div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 pt-14 space-y-24">
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 1 — Four Systems at a glance
-        ══════════════════════════════════════════════════ */}
-        <section id="sec-overview">
+      <div className="report-shell space-y-12">
+        <header className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <FadeIn>
-            <div className="text-center mb-12">
-              <p
-                className="text-xs tracking-widest uppercase mb-4"
-                style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}
-              >
-                Cosmic Coordinates
-              </p>
-              {name && (
-                <h1 className="font-display text-3xl sm:text-4xl font-semibold accent-heading mb-2 tracking-wide">
-                  {name}
+            <div className="space-y-5">
+              <button className="ghost-button" onClick={() => router.push('/')}>
+                ← Return Home
+              </button>
+
+              <div className="space-y-4">
+                <p className="eyebrow">Ceremonial Dossier</p>
+                <h1 className="font-display text-[clamp(3rem,8vw,6.4rem)] leading-[0.94] text-[var(--text-strong)]">
+                  {name ? `${name}'s` : 'Your'} cosmic dossier
                 </h1>
-              )}
-              <div className="divider mt-5" />
-            </div>
-          </FadeIn>
-
-          {/* Radar + Summary side by side */}
-          <FadeIn>
-            <div
-              className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 rounded-2xl p-5 sm:p-8 relative overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.35)', border: '1px solid var(--border)' }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: 'var(--gold)', opacity: 0.18 }} />
-
-              {/* Left: Radar chart */}
-              <div className="flex flex-col items-center justify-center">
-                <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Cosmic Profile</p>
-                <RadarChart profile={reading.cosmicProfile} />
+                <p className="max-w-[40rem] text-base leading-8 text-[var(--text-muted)] sm:text-[1.05rem]">
+                  A unified reading assembled from Western astrology, Vedic astrology, Bazi, and numerology, then edited into one report built for actual decision-making.
+                </p>
               </div>
 
-              {/* Right: Summary */}
-              <div className="flex flex-col justify-center gap-4">
-                <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.22em' }}>Summary</p>
-                <p className="font-display text-xl font-semibold" style={{ color: 'var(--gold)' }}>
-                  {synthesis.archetypeSymbol} {synthesis.archetype}
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                  {synthesis.essence}
-                </p>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-dim)' }}>Core Strengths</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {synthesis.coreStrengths.map((s, i) => (
-                      <span key={`${s}-${i}`} className="pill" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.68rem' }}>{s}</span>
-                    ))}
-                  </div>
-                </div>
-                <p className="text-xs italic" style={{ color: 'var(--text-dim)' }}>
-                  Superpower: {synthesis.superpower}
-                </p>
+              <div className="report-meta-row">
+                {formattedDate ? <span className="report-chip">Born {formattedDate}</span> : null}
+                {tob ? <span className="report-chip">Birth Time {tob}</span> : null}
+                <span className="report-chip">Four-system synthesis</span>
               </div>
             </div>
           </FadeIn>
 
-          {/* Four tradition cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {glanceCards.map((card, i) => (
-              <FadeIn key={card.id} delay={i * 80}>
-                <button
-                  className="rounded-xl p-5 flex flex-col gap-3 relative overflow-hidden h-full w-full text-left transition-transform hover:scale-[1.02] cursor-pointer"
-                  style={{ background: `${card.accent}15`, border: `1px solid ${card.accent}22` }}
-                  onClick={() => setActiveCard(activeCard === card.id ? null : card.id)}
-                >
-                  {/* thin top accent */}
-                  <div style={{ position: 'absolute', top: 0, left: 18, right: 18, height: 1, background: card.accent, opacity: 0.28 }} />
-
-                  {/* Icon + system name */}
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className="v-icon"
-                      style={{
-                        color: card.accent,
-                        fontFamily: card.id === 'vedic' ? 'serif' : 'inherit',
-                        fontSize: card.id === 'bazi' ? '1.2rem' : '1.5rem',
-                      }}
-                    >
-                      {card.icon}
-                    </span>
-                    <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: card.accent, opacity: 0.85 }}>
-                      {card.system}
-                    </span>
-                  </div>
-
-                  {/* Main value */}
-                  <div>
-                    <p className="font-display text-lg sm:text-xl font-semibold leading-tight" style={{ color: 'var(--text)' }}>
-                      {card.value}
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{card.sub}</p>
-                  </div>
-
-                  {/* Meta */}
-                  <p className="text-xs" style={{ color: card.accent, opacity: 0.9 }}>{card.meta}</p>
-
-                  {/* Traits */}
-                  <div className="flex flex-col gap-1 mt-auto pt-1" style={{ borderTop: '1px solid var(--line)' }}>
-                    {card.traits.map((t, i) => (
-                      <span key={`${t}-${i}`} className="text-xs" style={{ color: 'var(--text-dim)' }}>— {t}</span>
-                    ))}
-                  </div>
-
-                  {/* Tap hint */}
-                  <p className="text-xs mt-1" style={{ color: card.accent, opacity: 0.5, fontSize: '0.6rem', letterSpacing: '0.1em' }}>TAP FOR DETAILS</p>
-                </button>
-              </FadeIn>
-            ))}
-          </div>
-
-          {/* ── Card detail modal ── */}
-          {activeCard && cardDiveMap[activeCard] && (() => {
-            const dive = cardDiveMap[activeCard];
-            const card = glanceCards.find(c => c.id === activeCard)!;
-            return (
-              <div
-                className="card-modal-backdrop"
-                onClick={(e) => { if (e.target === e.currentTarget) setActiveCard(null); }}
-              >
-                <div className="card-modal" style={{ borderColor: `${dive.accent}30` }}>
-                  <div style={{ position: 'absolute', top: 0, left: 20, right: 20, height: 2, background: dive.accent, opacity: 0.28, borderRadius: '16px 16px 0 0' }} />
-
-                  {/* Yin-Yang animation for Bazi */}
-                  {activeCard === 'bazi' && (
-                    <div className="flex justify-center mb-4">
-                      <YinYang size={100} />
-                    </div>
-                  )}
-
-                  {/* Header + close */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <span style={{ color: dive.accent, fontSize: '1.5rem' }}>{dive.icon}</span>
-                      <div>
-                        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: dive.accent, letterSpacing: '0.14em' }}>{card.system}</p>
-                        <p className="font-display text-xl font-semibold" style={{ color: 'var(--text)' }}>{dive.title}</p>
+          <FadeIn delay={90}>
+            <section className="summary-hero-panel">
+              <div className="grid gap-6 md:grid-cols-[0.92fr_1.08fr] md:items-center">
+                <div className="space-y-4">
+                  <p className="section-kicker">Unified Archetype</p>
+                  <h2 className="font-display text-[clamp(2rem,5vw,3.4rem)] leading-[1.02] text-[var(--text-strong)]">
+                    {reading.synthesis.archetypeSymbol} {reading.synthesis.archetype}
+                  </h2>
+                  <p className="story-copy">{reading.synthesis.essence}</p>
+                  <div className="summary-grid">
+                    <div className="summary-stat">
+                      <p className="section-kicker mb-3">Core Strengths</p>
+                      <div className="flex flex-wrap gap-2">
+                        {reading.synthesis.coreStrengths.map((strength) => (
+                          <span key={strength} className="pill-tag">{strength}</span>
+                        ))}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setActiveCard(null)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors hover:scale-110"
-                      style={{ background: 'var(--surface)', color: 'var(--text-dim)', border: '1px solid var(--line)' }}
-                      aria-label="Close"
-                    >×</button>
-                  </div>
 
-                  {/* Table */}
-                  <div className="rounded-xl overflow-hidden mb-6" style={{ border: '1px solid var(--line)' }}>
-                    <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
-                      <tbody>
-                        {dive.table.map((row, i) => (
-                          <tr key={row.label} style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent', borderBottom: i < dive.table.length - 1 ? '1px solid var(--line)' : 'none' }}>
-                            <td className="px-4 py-2.5 text-xs uppercase tracking-widest whitespace-nowrap" style={{ color: dive.accent, letterSpacing: '0.08em', fontSize: '0.6rem', width: '35%', verticalAlign: 'top', paddingTop: 12 }}>
-                              {row.label}
-                            </td>
-                            <td className="px-4 py-2.5" style={{ color: 'var(--text-muted)' }}>
-                              {row.value}
-                            </td>
-                          </tr>
+                    <div className="summary-stat">
+                      <p className="section-kicker mb-3">Growth Edge</p>
+                      <div className="flex flex-wrap gap-2">
+                        {reading.synthesis.growthAreas.map((item) => (
+                          <span key={item} className="pill-tag">{item}</span>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Deep Dive */}
-                  <div className="rounded-xl p-5 sm:p-6" style={{ background: `${dive.accent}08`, border: `1px solid ${dive.accent}18` }}>
-                    <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: dive.accent, letterSpacing: '0.16em' }}>
-                      Deep Dive
-                    </p>
-                    <div className="space-y-4">
-                      {dive.deepDive.split('\n\n').filter(Boolean).map((para, i) => (
-                        <p key={i} className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.95 }}>
-                          {para}
-                        </p>
-                      ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })()}
-        </section>
-
-        {/* ══════════════════════════════════════════════════
-            SECTION 2 — Summary / Synthesis
-        ══════════════════════════════════════════════════ */}
-        <section id="sec-synthesis">
-          <FadeIn>
-            <SectionDivider label="Synthesis" />
-          </FadeIn>
-
-          <FadeIn delay={60}>
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ border: `1px solid ${domColor}28`, background: 'rgba(255,255,255,0.35)' }}
-            >
-              {/* Archetype header */}
-              <div
-                className="px-7 py-6 flex items-center gap-5 relative overflow-hidden"
-                style={{ borderBottom: `1px solid ${domColor}1a` }}
-              >
-                {/* Subtle accent line at top */}
-                <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: domColor, opacity: 0.22 }} />
-
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: `${domColor}18`, border: `1px solid ${domColor}3a`, color: domColor }}
-                >
-                  {synthesis.archetypeSymbol}
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--text-dim)', letterSpacing: '0.18em' }}>Your Archetype</p>
-                  <h2 className="font-display text-xl font-semibold" style={{ color: 'var(--gold-light)', letterSpacing: '0.04em' }}>
-                    {synthesis.archetype}
-                  </h2>
-                </div>
-                <div className="hidden sm:flex flex-wrap gap-2 justify-end">
-                  <Tag label={western.sunSign.name} accent="#333" />
-                  <Tag label={vedic.rashi.name} accent="#444" />
-                  <Tag label={`${bazi.dayMaster.polarity} ${bazi.dayMaster.element}`} accent="#3a3a3a" />
-                  <Tag label={`LP ${numerology.lifePath.number}`} accent="#4a4a4a" />
-                </div>
-              </div>
-
-              <div className="px-7 py-7 space-y-6">
-                <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: 2.0 }}>
-                  {synthesis.essence}
-                </p>
-
-                {/* Superpower */}
-                <div
-                  className="rounded-xl p-5"
-                  style={{ background: `${domColor}0b`, border: `1px solid ${domColor}22` }}
-                >
-                  <p className="text-xs tracking-widest uppercase mb-2" style={{ color: domColor, letterSpacing: '0.16em' }}>Core Gift</p>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text)', lineHeight: 1.9 }}>
-                    {synthesis.superpower}
+                  <p className="text-sm leading-7 text-[var(--text-muted)]">
+                    <strong className="text-[var(--text)]">Superpower:</strong> {reading.synthesis.superpower}
                   </p>
                 </div>
 
-                {/* Strengths + Growth */}
-                <div className="grid sm:grid-cols-2 gap-6 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
-                  <div>
-                    <SectionLabel>Core Strengths</SectionLabel>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {synthesis.coreStrengths.map((s, i) => <Tag key={`${s}-${i}`} label={s} accent={domColor} />)}
-                    </div>
-                  </div>
-                  <div>
-                    <SectionLabel>Areas to Grow</SectionLabel>
-                    <ul className="space-y-2 mt-2">
-                      {synthesis.growthAreas.map((g, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-xs mt-0.5 flex-shrink-0" style={{ color: 'var(--text-dim)' }}>◇</span>
-                          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{g}</span>
-                        </li>
-                      ))}
-                    </ul>
+                <div className="space-y-4">
+                  <p className="section-kicker">Cosmic Profile</p>
+                  <div className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-4">
+                    <RadarChart profile={reading.cosmicProfile} />
                   </div>
                 </div>
+              </div>
+            </section>
+          </FadeIn>
+        </header>
 
-                {/* Insight tabs */}
-                <div style={{ borderTop: '1px solid var(--line)', paddingTop: '1.5rem' }}>
-                  <div className="flex items-center justify-between mb-5">
-                    <SectionLabel>Current Energies</SectionLabel>
-                    <div className="flex gap-1.5">
-                      {(['daily', 'weekly', 'monthly'] as const).map((t, i) => (
-                        <button
-                          key={`${t}-${i}`}
-                          className={`tab-btn ${insightTab === t ? 'active' : ''}`}
-                          onClick={() => setInsightTab(t)}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
+        <section className="detail-grid">
+          {systemSummaries.map((summary, index) => (
+            <FadeIn key={summary.id} delay={index * 60}>
+              <article className="system-mini-card h-full">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="report-chip-icon" style={{ color: SYSTEM_ACCENTS[summary.id] }}>
+                    {SYSTEM_ICONS[summary.id]}
+                  </span>
+                  <div>
+                    <p className="section-kicker">{summary.label}</p>
+                    <p className="mt-1 font-display text-2xl leading-8 text-[var(--text-strong)]">{summary.title}</p>
                   </div>
+                </div>
+                <p className="mb-3 text-sm uppercase tracking-[0.16em] text-[var(--text-soft)]">{summary.meta}</p>
+                <p className="panel-copy max-w-none">{summary.text}</p>
+                <p className="mt-4 text-sm leading-7 text-[var(--text-muted)]">{summary.traitLabel}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {summary.traits.slice(0, 4).map((trait) => (
+                    <span key={trait} className="pill-tag">{trait}</span>
+                  ))}
+                </div>
+              </article>
+            </FadeIn>
+          ))}
+        </section>
 
-                  {insightTab === 'daily' && <InsightPanel insight={daily} personalYear={numerology.personalYear} />}
-                  {insightTab === 'weekly' && <InsightPanel insight={weekly} personalYear={numerology.personalYear} />}
-                  {insightTab === 'monthly' && <InsightPanel insight={monthly} personalYear={numerology.personalYear} />}
+        <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+          <FadeIn>
+            <div className="report-block space-y-6">
+              <div className="space-y-3">
+                <p className="eyebrow">Tradition Breakdown</p>
+                <h2 className="font-display text-[clamp(2rem,4vw,3rem)] leading-[1.02] text-[var(--text-strong)]">
+                  Move between the four source systems.
+                </h2>
+                <p className="story-copy">
+                  Each tradition contributes a different lens. Use the tabs to inspect its key symbols, then read the deeper interpretation below the table.
+                </p>
+              </div>
+
+              <div className="system-tabs">
+                {systemSummaries.map((summary) => (
+                  <button
+                    key={summary.id}
+                    type="button"
+                    className="system-tab"
+                    data-active={activeSystem === summary.id}
+                    onClick={() => setActiveSystem(summary.id)}
+                  >
+                    <span className="system-tab-icon">{SYSTEM_ICONS[summary.id]}</span>
+                    {summary.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="system-detail-panel space-y-6">
+                <div className="space-y-2">
+                  <p className="section-kicker" style={{ color: SYSTEM_ACCENTS[activeSystem] }}>
+                    {systemSummaries.find((item) => item.id === activeSystem)?.label}
+                  </p>
+                  <h3 className="font-display text-[clamp(1.7rem,3vw,2.6rem)] leading-[1.06] text-[var(--text-strong)]">
+                    {activeDive.title}
+                  </h3>
+                </div>
+
+                <table className="detail-table">
+                  <tbody>
+                    {activeDive.table.map((row) => (
+                      <tr key={row.label}>
+                        <td>{row.label}</td>
+                        <td>{row.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="space-y-4">
+                  {activeDive.deepDive.split('\n\n').filter(Boolean).map((paragraph, index) => (
+                    <p key={`${activeDive.title}-${index}`} className="deep-copy">
+                      {paragraph}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
           </FadeIn>
+
+          <div className="space-y-6">
+            <FadeIn delay={60}>
+              <div className="report-block space-y-6">
+                <div className="space-y-3">
+                  <p className="eyebrow">Current Timing</p>
+                  <p className="story-copy">
+                    Numerology and synthesis combine into a practical forecast layer. Read the period that matches how far ahead you’re planning.
+                  </p>
+                </div>
+
+                <div className="insight-tabs">
+                  {(Object.keys(FORECAST_LABELS) as ForecastKey[]).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className="insight-tab"
+                      data-active={activeForecast === key}
+                      onClick={() => setActiveForecast(key)}
+                    >
+                      {FORECAST_LABELS[key]}
+                    </button>
+                  ))}
+                </div>
+
+                <ForecastPanel insight={activeInsight} personalYear={reading.numerology.personalYear} />
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={120}>
+              <div className="report-block space-y-6">
+                <div className="space-y-3">
+                  <p className="eyebrow">Structural Markers</p>
+                  <p className="story-copy">
+                    These are the fixed coordinates anchoring the reading: your Bazi pillars, life-path sequence, and the dominant element driving the synthesis.
+                  </p>
+                </div>
+
+                <div className="pillar-grid">
+                  {pillars.map((pillar) => (
+                    <div key={pillar.label} className="pillar-card">
+                      <p className="section-kicker mb-2">{pillar.label}</p>
+                      <p className="font-display text-2xl text-[var(--text-strong)]">
+                        {pillar.stem.chinese}{pillar.branch.chinese}
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                        {pillar.stem.name} {pillar.branch.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="summary-grid">
+                  <div className="summary-stat">
+                    <p className="section-kicker mb-3">Numerology Sequence</p>
+                    <p className="text-sm leading-7 text-[var(--text-muted)]">
+                      Personal Year {reading.numerology.personalYear}, Personal Month {reading.numerology.personalMonth}, Personal Day {reading.numerology.personalDay}
+                    </p>
+                  </div>
+
+                  <div className="summary-stat">
+                    <p className="section-kicker mb-3">Dominant Element</p>
+                    <p className="font-display text-2xl text-[var(--text-strong)]">{reading.synthesis.dominantElement}</p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                      This is the element repeated most strongly across the unified reading.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
         </section>
 
-        <section id="sec-general">
-          <FadeIn><SectionDivider label="General Reading" /></FadeIn>
-          <DeepPanel section={deepAnalysis.general} accent={DEEP_TABS[0].accent} />
+        <section className="grid gap-6 lg:grid-cols-[0.84fr_1.16fr] lg:items-start">
+          <FadeIn>
+            <div className="space-y-5">
+              <p className="eyebrow">Deep Inquiry</p>
+              <h2 className="max-w-[12ch] font-display text-[clamp(2.2rem,5vw,4.2rem)] leading-[0.98] text-[var(--text-strong)]">
+                Choose the area you want interpreted in full.
+              </h2>
+              <p className="max-w-[37rem] text-base leading-8 text-[var(--text-muted)]">
+                Once the overall pattern is stable, the report opens into specific life domains. Each section retains the cross-tradition method instead of switching into generic advice.
+              </p>
+              <div className="report-meta-row">
+                {DEEP_TABS.map((tab) => (
+                  <span key={tab.id} className="report-chip">{tab.label}</span>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={90}>
+            <div className="deep-panel space-y-6">
+              <div className="deep-tabs">
+                {DEEP_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className="deep-tab"
+                    data-active={activeDeep === tab.id}
+                    onClick={() => setActiveDeep(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <DeepSectionView section={activeDeepSection} />
+            </div>
+          </FadeIn>
         </section>
 
-        <section id="sec-love">
-          <FadeIn><SectionDivider label="Love & Relationships" /></FadeIn>
-          <LovePanel love={deepAnalysis.love} />
-        </section>
+        <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+          <FadeIn>
+            <div className="report-block space-y-5">
+              <p className="eyebrow">Carry Forward</p>
+              <h2 className="font-display text-[clamp(2rem,4vw,3rem)] leading-[1.02] text-[var(--text-strong)]">
+                The reading resolves into one working instruction.
+              </h2>
+              <p className="deep-copy">
+                Use the archetype for identity, the forecast for timing, and the deep sections for area-specific judgment. The point is not to collect symbols. The point is to act with sharper self-knowledge.
+              </p>
+              <div className="summary-grid">
+                <div className="summary-stat">
+                  <p className="section-kicker mb-3">Primary Gift</p>
+                  <p className="font-display text-2xl text-[var(--text-strong)]">{reading.synthesis.superpower}</p>
+                </div>
+                <div className="summary-stat">
+                  <p className="section-kicker mb-3">Main Challenge</p>
+                  <p className="panel-copy max-w-none">{reading.numerology.lifePath.challenge}</p>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
 
-        <section id="sec-career">
-          <FadeIn><SectionDivider label="Career & Finance" /></FadeIn>
-          <DeepPanel section={deepAnalysis.careerFinance} accent={DEEP_TABS[2].accent} />
+          <FadeIn delay={90}>
+            <div className="report-block space-y-5">
+              <p className="eyebrow">Next Move</p>
+              <p className="panel-copy max-w-none">
+                Generate another reading, compare patterns for someone close to you, or return to the opening ritual when you want a fresh pass with updated context.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button className="ritual-button" onClick={() => router.push('/')}>
+                  Start Another Reading
+                </button>
+                <button className="secondary-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                  Back To Top
+                </button>
+              </div>
+            </div>
+          </FadeIn>
         </section>
-
-        <section id="sec-health">
-          <FadeIn><SectionDivider label="Health & Vitality" /></FadeIn>
-          <DeepPanel section={deepAnalysis.health} accent={DEEP_TABS[3].accent} />
-        </section>
-
-        <section id="sec-pastlife">
-          <FadeIn><SectionDivider label="Past Life & Soul Purpose" /></FadeIn>
-          <DeepPanel section={deepAnalysis.pastLife} accent={DEEP_TABS[4].accent} />
-        </section>
-
       </div>
-
-      <footer className="relative z-10 mt-20 text-center pb-10" style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}>
-        <div className="divider mb-6" />
-        <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
-          ANCIENT WISDOM · MODERN CLARITY
-        </p>
-        <p className="text-xs mt-3" style={{ color: 'var(--text-dim)', opacity: 0.6, fontSize: '0.65rem' }}>
-          © {new Date().getFullYear()} Psychic Central · Powered by Path to Life
-        </p>
-      </footer>
-
-      <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} name={name} reading={reading} />
     </main>
   );
 }
-

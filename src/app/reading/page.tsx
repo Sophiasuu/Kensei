@@ -4,9 +4,12 @@ import ReadingContent from './ReadingContent';
 export default function ReadingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div style={{ color: 'var(--text-muted)', letterSpacing: '0.15em', fontSize: '0.85rem' }}>
-          READING THE COSMOS…
+      <div className="min-h-screen flex items-center justify-center px-5">
+        <div className="surface-panel max-w-md text-center">
+          <p className="eyebrow">Compiling The Dossier</p>
+          <p className="mt-4 text-sm leading-7 text-[var(--text-muted)]">
+            Cross-checking Western, Vedic, Bazi, and numerology threads into a single readable report.
+          </p>
         </div>
       </div>
     }>

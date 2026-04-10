@@ -5,10 +5,31 @@ import { useRouter } from 'next/navigation';
 import FadeIn from '@/components/FadeIn';
 
 const SYSTEMS = [
-  { name: 'Western',    sub: 'Sun sign & archetypes',    icon: '☽' },
-  { name: 'Vedic',      sub: 'Rashi & Nakshatra',        icon: 'ॐ' },
-  { name: 'Bazi',       sub: 'Four Pillars of Destiny',  icon: '命' },
-  { name: 'Numerology', sub: 'Life Path & cycles',       icon: '∞' },
+  { name: 'Western', sub: 'Sun sign, modality, and core archetype', icon: '☽' },
+  { name: 'Vedic', sub: 'Rashi, nakshatra, and karmic tone', icon: 'ॐ' },
+  { name: 'Bazi', sub: 'Four Pillars, Day Master, and timing', icon: '命' },
+  { name: 'Numerology', sub: 'Life Path, personal year, and cycles', icon: '∞' },
+];
+
+const RITUAL_STEPS = [
+  'Enter your birth date and optional birth time.',
+  'We synthesize four traditions into one clear narrative.',
+  'You receive instant themes, timing, and deep-dive guidance.',
+];
+
+const READING_SECTIONS = [
+  {
+    title: 'Unified Archetype',
+    text: 'A single editorial summary distilling what all four systems agree on about your nature, gifts, and growth edge.',
+  },
+  {
+    title: 'Current Timing',
+    text: 'Daily, weekly, and monthly atmosphere translated into practical language, not abstract jargon.',
+  },
+  {
+    title: 'Deep Inquiry',
+    text: 'Focused guidance on love, career, health, and long-range patterns once the core reading is established.',
+  },
 ];
 
 export default function HomePage() {
@@ -30,136 +51,182 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-8 sm:pt-16 overflow-hidden">
-      <div className="relative z-10 w-full max-w-md text-center">
-        <FadeIn>
-          {/* Headline */}
-          <h1
-            className="mb-3 text-4xl sm:text-5xl"
-            style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.04em', color: 'var(--text)' }}
-          >
-            Psychic Central
-          </h1>
-        </FadeIn>
-
-        {/* Subtitle — delayed fade-in with upward drift */}
-        <div
-          className="subtitle-drift mb-6 text-sm leading-relaxed"
-          style={{ color: 'var(--text-muted)', letterSpacing: '0.03em', fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}
-        >
-          Your complete cosmic blueprint
-        </div>
-
-        <FadeIn>
-          <div className="divider mb-6" />
-
-          {/* System icons row */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-5 mb-8">
-            {SYSTEMS.map((s, i) => (
-              <div
-                key={s.name}
-                className="text-center"
-                style={{
-                  opacity: 0,
-                  animation: `subtitleIn 2s ease-out ${0.6 + i * 0.4}s forwards`,
-                }}
-              >                <div
-                  className="mx-auto mb-2 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center relative overflow-hidden"
-                  style={{
-                    background: 'rgba(194,138,12,0.1)',
-                    border: '1px solid rgba(141,92,0,0.14)',
-                  }}
-                >
-                  <span style={{
-                    color: 'var(--text)',
-                    fontSize: s.name === 'Western' ? '1.5rem' : s.name === 'Bazi' ? '1.2rem' : '1.5rem',
-                    fontFamily: s.name === 'Vedic' ? 'serif' : 'inherit',
-                  }}>
-                    {s.icon}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold tracking-wide" style={{ color: 'var(--text-muted)' }}>{s.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)', fontSize: '0.65rem' }}>{s.sub}</p>
+    <main className="relative overflow-hidden px-5 pb-16 pt-6 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <section className="grid gap-12 lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+          <div className="space-y-10">
+            <FadeIn>
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="eyebrow">Ceremonial Multi-System Reading</p>
+                <span className="rounded-full border border-[var(--line)] px-3 py-1 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--text-soft)]">
+                  No signup required
+                </span>
               </div>
+            </FadeIn>
+
+            <FadeIn delay={80}>
+              <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_17rem] md:items-end">
+                <div className="space-y-5">
+                  <h1 className="max-w-[11ch] font-display text-[clamp(3.6rem,9vw,7.4rem)] leading-[0.95] text-[var(--text-strong)]">
+                    Four ancient systems, one exact reading.
+                  </h1>
+                  <p className="max-w-[38rem] text-[1.05rem] leading-8 text-[var(--text-muted)] sm:text-[1.12rem]">
+                    Psychic Central translates your birth data into an editorial-grade reading across Western astrology,
+                    Vedic astrology, Bazi, and numerology, then resolves them into one clear narrative.
+                  </p>
+                </div>
+
+                <aside className="quote-panel">
+                  <p className="quote-mark">Ritual note</p>
+                  <p className="quote-copy">
+                    Built for first-time seekers who want depth fast, without the usual haze of mystic filler or generic AI wellness copy.
+                  </p>
+                </aside>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={140}>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="surface-panel">
+                  <p className="section-kicker">Immediate Clarity</p>
+                  <p className="panel-copy">See your dominant archetype, elemental balance, and current timing inside a single guided report.</p>
+                </div>
+                <div className="surface-panel">
+                  <p className="section-kicker">Interpretation First</p>
+                  <p className="panel-copy">The output is written for humans. The systems stay precise, but the language stays readable.</p>
+                </div>
+                <div className="surface-panel">
+                  <p className="section-kicker">Optional Birth Time</p>
+                  <p className="panel-copy">Add a birth time when you have it to unlock the Hour Pillar and a sharper timing layer.</p>
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={200}>
+              <div className="ritual-listing">
+                {SYSTEMS.map((system) => (
+                  <article key={system.name} className="ritual-system-row">
+                    <div className="ritual-system-icon" aria-hidden="true">{system.icon}</div>
+                    <div className="space-y-1">
+                      <p className="section-kicker">{system.name}</p>
+                      <p className="panel-copy">{system.sub}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </FadeIn>
+          </div>
+
+          <FadeIn delay={260}>
+            <aside className="ritual-panel lg:ml-auto lg:max-w-[34rem]">
+              <div className="space-y-3">
+                <p className="eyebrow">Begin The Reading</p>
+                <h2 className="font-display text-[clamp(2.25rem,5vw,3.6rem)] leading-[1.02] text-[var(--text-strong)]">
+                  Enter the coordinates.
+                </h2>
+                <p className="max-w-[34rem] text-base leading-7 text-[var(--text-muted)]">
+                  Start with the essentials. The report generates instantly and stays focused on synthesis, timing, and practical guidance.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5 text-left">
+                <div>
+                  <label className="form-label" htmlFor="name">Name</label>
+                  <input
+                    id="name"
+                    className="ritual-input"
+                    type="text"
+                    placeholder="Optional, but useful for a more personal tone"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label" htmlFor="dob">Date of Birth</label>
+                  <input
+                    id="dob"
+                    className="ritual-input"
+                    type="date"
+                    value={dob}
+                    onChange={(e) => {
+                      setDob(e.target.value);
+                      setError('');
+                    }}
+                    max={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label" htmlFor="tob">
+                    Time of Birth
+                    <span className="label-note">Optional, for Hour Pillar timing</span>
+                  </label>
+                  <input
+                    id="tob"
+                    className="ritual-input"
+                    type="time"
+                    value={tob}
+                    onChange={(e) => setTob(e.target.value)}
+                  />
+                </div>
+
+                {error && <p className="form-error">{error}</p>}
+
+                <button type="submit" className="ritual-button w-full">
+                  Generate My Reading
+                </button>
+
+                <div className="ritual-footnote-grid">
+                  <p>Private reading. No account wall.</p>
+                  <p>Optimized for mobile and desktop.</p>
+                </div>
+              </form>
+            </aside>
+          </FadeIn>
+        </section>
+
+        <section className="mt-20 grid gap-10 lg:grid-cols-[0.86fr_1.14fr]">
+          <FadeIn>
+            <div className="space-y-5">
+              <p className="eyebrow">How It Reads</p>
+              <h2 className="max-w-[12ch] font-display text-[clamp(2.4rem,6vw,4.6rem)] leading-[0.98] text-[var(--text-strong)]">
+                Structured like a dossier, not a toy.
+              </h2>
+              <p className="max-w-[37rem] text-base leading-8 text-[var(--text-muted)]">
+                The site is designed to feel ceremonial and exacting. Every section exists to move you from raw symbolic material into one readable report you can actually use.
+              </p>
+
+              <div className="space-y-3">
+                {RITUAL_STEPS.map((step, index) => (
+                  <div key={step} className="ritual-step-row">
+                    <span className="ritual-step-index">0{index + 1}</span>
+                    <p className="panel-copy text-[var(--text-muted)]">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {READING_SECTIONS.map((section, index) => (
+              <FadeIn key={section.title} delay={index * 70}>
+                <article className="surface-panel h-full">
+                  <p className="section-kicker">{section.title}</p>
+                  <p className="panel-copy mt-4">{section.text}</p>
+                </article>
+              </FadeIn>
             ))}
           </div>
-        </FadeIn>
+        </section>
 
-        {/* Form */}
-        <FadeIn delay={120}>
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-2xl p-5 sm:p-8 text-left space-y-5"
-            style={{ background: 'var(--paper-strong)', border: '1px solid rgba(156,108,18,0.14)', boxShadow: '0 20px 60px rgba(110,82,28,0.1)' }}
-          >
-            <div>
-              <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
-                Full Name <span style={{ color: 'var(--text)' }}>*</span>
-              </label>
-              <input
-                className="cosmic-input"
-                type="text"
-                placeholder="e.g. Luna Celestine"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                autoComplete="off"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
-                Date of Birth <span style={{ color: 'var(--text)' }}>*</span>
-              </label>
-              <input
-                className="cosmic-input"
-                type="date"
-                value={dob}
-                onChange={e => { setDob(e.target.value); setError(''); }}
-                max={new Date().toISOString().split('T')[0]}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.16em' }}>
-                Time of Birth <span style={{ color: 'var(--text-dim)', textTransform: 'none', letterSpacing: 0 }}>(optional — unlocks Hour Pillar)</span>
-              </label>
-              <input
-                className="cosmic-input"
-                type="time"
-                value={tob}
-                onChange={e => setTob(e.target.value)}
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm" style={{ color: '#a2481a' }}>{error}</p>
-            )}
-
-            <p className="text-center" style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginBottom: 4 }}>* Required to generate your reading</p>
-
-            <div className="pt-2 text-center">
-              <button type="submit" className="btn-gold w-full">
-                Reveal My Reading
-              </button>
-              <p style={{ marginTop: 14, fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 400 }}>
-                Trusted by 40,000+ seekers
-              </p>
-            </div>
-          </form>
-        </FadeIn>
+        <footer className="mt-20 flex flex-col gap-3 border-t border-[var(--line)] pt-6 text-sm text-[var(--text-soft)] sm:flex-row sm:items-center sm:justify-between">
+          <p>Psychic Central arranges ancient systems into one coherent modern report.</p>
+          <p>© {new Date().getFullYear()} Psychic Central</p>
+        </footer>
       </div>
-
-      {/* Footer */}
-      <footer className="relative z-10 mt-12 mb-6 flex flex-col items-center gap-1" style={{ fontFamily: 'var(--font-cormorant), Georgia, serif', fontWeight: 300 }}>
-        <p className="text-xs tracking-widest" style={{ color: 'var(--text-dim)', letterSpacing: '0.2em' }}>
-          ANCIENT WISDOM · MODERN CLARITY
-        </p>
-        <p className="text-xs" style={{ color: 'var(--text-dim)', opacity: 0.6, fontSize: '0.65rem', marginTop: 8 }}>
-          © {new Date().getFullYear()} Psychic Central · Powered by Path to Life
-        </p>
-      </footer>
     </main>
   );
 }

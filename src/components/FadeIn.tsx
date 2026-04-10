@@ -23,7 +23,7 @@ export default function FadeIn({ children, delay = 0, className = '' }: FadeInPr
           observer.unobserve(el);
         }
       },
-      { threshold: 0.04, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.12, rootMargin: '0px 0px -48px 0px' }
     );
 
     observer.observe(el);
@@ -36,8 +36,8 @@ export default function FadeIn({ children, delay = 0, className = '' }: FadeInPr
       className={className}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(20px)',
-        transition: `opacity 1.2s cubic-bezier(0.22,1,0.36,1), transform 1.2s cubic-bezier(0.22,1,0.36,1)`,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 0.72s var(--ease-out-quint), transform 0.72s var(--ease-out-quint)`,
         transitionDelay: visible ? '0ms' : `${delay}ms`,
         willChange: visible ? 'auto' : 'opacity, transform',
       }}
