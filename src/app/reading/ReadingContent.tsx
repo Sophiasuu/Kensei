@@ -337,10 +337,10 @@ export default function ReadingContent() {
       <div className="mystic-bg-illustration" style={{ top: '8%', right: '3%', width: 420, height: 420, animationDuration: '20s' }}>
         <img src="/illustrations/zodiac-wheel.png" alt="" width={420} height={420} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ top: '30%', left: '2%', width: 360, height: 360, animationDuration: '24s', animationDelay: '4s' }}>
+      <div className="mystic-bg-illustration" style={{ top: '2%', left: '2%', width: 360, height: 360, animationDuration: '24s', animationDelay: '4s' }}>
         <img src="/illustrations/moon-goddess.png" alt="" width={360} height={360} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ top: '55%', right: '4%', width: 340, height: 340, animationDuration: '18s', animationDelay: '7s' }}>
+      <div className="mystic-bg-illustration" style={{ bottom: '3%', right: '3%', width: 340, height: 340, animationDuration: '18s', animationDelay: '7s' }}>
         <img src="/illustrations/hourglass.png" alt="" width={340} height={340} draggable={false} />
       </div>
       <div className="mystic-bg-illustration" style={{ top: '75%', left: '3%', width: 320, height: 320, animationDuration: '22s', animationDelay: '2s' }}>

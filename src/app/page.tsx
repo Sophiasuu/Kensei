@@ -54,16 +54,16 @@ export default function HomePage() {
   return (
     <main className="relative overflow-hidden px-5 pb-16 pt-6 sm:px-8 lg:px-10">
       {/* Co-Star style floating background illustrations */}
-      <div className="mystic-bg-illustration" style={{ top: '5%', left: '3%', width: 400, height: 400, animationDuration: '18s' }}>
+      <div className="mystic-bg-illustration" style={{ top: '4%', right: '18%', width: 400, height: 400, animationDuration: '18s' }}>
         <img src="/illustrations/moon-mobile.png" alt="" width={400} height={400} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ top: '35%', right: '2%', width: 380, height: 380, animationDuration: '22s', animationDelay: '3s' }}>
+      <div className="mystic-bg-illustration" style={{ top: '52%', left: '35%', width: 380, height: 380, animationDuration: '22s', animationDelay: '3s' }}>
         <img src="/illustrations/saturn.png" alt="" width={380} height={380} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ bottom: '15%', left: '5%', width: 340, height: 340, animationDuration: '20s', animationDelay: '6s' }}>
+      <div className="mystic-bg-illustration" style={{ top: '32%', right: '10%', width: 340, height: 340, animationDuration: '20s', animationDelay: '6s' }}>
         <img src="/illustrations/crystals.png" alt="" width={340} height={340} draggable={false} />
       </div>
-      <div className="mystic-bg-illustration" style={{ bottom: '8%', right: '6%', width: 320, height: 320, animationDuration: '24s', animationDelay: '2s' }}>
+      <div className="mystic-bg-illustration" style={{ bottom: '12%', left: '40%', width: 320, height: 320, animationDuration: '24s', animationDelay: '2s' }}>
         <img src="/illustrations/potion-bottle.png" alt="" width={320} height={320} draggable={false} />
       </div>
 
