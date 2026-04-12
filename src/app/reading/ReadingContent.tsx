@@ -351,7 +351,7 @@ export default function ReadingContent() {
 
               <div className="space-y-4">
                 <p className="eyebrow">Ceremonial Dossier</p>
-                <h1 className="font-display text-[clamp(3rem,8vw,6.4rem)] leading-[0.94] text-[var(--text-strong)]">
+                <h1 className="font-display text-[clamp(2.25rem,7.2vw,5.8rem)] leading-[0.97] text-[var(--text-strong)]">
                   {name ? `${name}'s` : 'Your'} cosmic dossier
                 </h1>
                 <p className="max-w-[40rem] text-base leading-8 text-[var(--text-muted)] sm:text-[1.05rem]">
@@ -373,9 +373,12 @@ export default function ReadingContent() {
               <div className="grid gap-6 md:grid-cols-[0.92fr_1.08fr] md:items-center">
                 <div className="space-y-4">
                   <p className="section-kicker">Unified Archetype</p>
-                  <h2 className="font-display text-[clamp(2rem,5vw,3.4rem)] leading-[1.02] text-[var(--text-strong)]">
+                  <h2 className="font-display text-[clamp(1.7rem,4.5vw,3.1rem)] leading-[1.05] text-[var(--text-strong)]">
                     {reading.synthesis.archetypeSymbol} {reading.synthesis.archetype}
                   </h2>
+                  <p className="text-sm uppercase tracking-[0.16em] text-[var(--text-soft)]">
+                    Base: {reading.synthesis.archetypeBase} · Subtype: {reading.synthesis.subtype}
+                  </p>
                   <p className="story-copy">{reading.synthesis.essence}</p>
                   <div className="summary-grid">
                     <div className="summary-stat">
@@ -396,6 +399,92 @@ export default function ReadingContent() {
                       </div>
                     </div>
                   </div>
+
+                  <div className="summary-grid">
+                    <div className="summary-stat">
+                      <p className="section-kicker mb-3">System Agreement</p>
+                      <p className="font-display text-2xl text-[var(--text-strong)]">{reading.synthesis.agreementScore}%</p>
+                      <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                        Conflict load: {reading.synthesis.conflictScore}%
+                      </p>
+                    </div>
+
+                    <div className="summary-stat">
+                      <p className="section-kicker mb-3">Element Stack</p>
+                      <div className="flex flex-wrap gap-2">
+                        {reading.synthesis.elementDistribution.map((entry) => (
+                          <span key={entry.element} className="pill-tag">
+                            {entry.element} {entry.count}/4
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface)] p-4">
+                    <p className="section-kicker mb-3">Cross-System Synthesis</p>
+                    <p className="panel-copy max-w-none">{reading.synthesis.alignmentNotes.synthesis}</p>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="section-kicker mb-2">Agreements</p>
+                        {reading.synthesis.alignmentNotes.agreements.length ? (
+                          <ul className="divider-list">
+                            {reading.synthesis.alignmentNotes.agreements.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm leading-7 text-[var(--text-muted)]">No hard element agreements this cycle.</p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="section-kicker mb-2">Conflicts</p>
+                        {reading.synthesis.alignmentNotes.conflicts.length ? (
+                          <ul className="divider-list">
+                            {reading.synthesis.alignmentNotes.conflicts.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm leading-7 text-[var(--text-muted)]">No major elemental clashes detected.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="summary-stat">
+                    <p className="section-kicker mb-3">Core Contradictions</p>
+                    <div className="space-y-4">
+                      {reading.synthesis.contradictions.map((item) => (
+                        <div key={item.title} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                          <p className="font-display text-xl text-[var(--text-strong)]">{item.title}</p>
+                          <p className="mt-2 panel-copy max-w-none">{item.narrative}</p>
+                          <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+                            <strong className="text-[var(--text)]">Guidance:</strong> {item.guidance}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="summary-stat">
+                    <p className="section-kicker mb-3">Domain Variants</p>
+                    <div className="space-y-4">
+                      {reading.synthesis.domainVariants.map((variant) => (
+                        <div key={variant.domain} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                          <p className="section-kicker mb-2">{variant.domain}</p>
+                          <p className="font-display text-xl text-[var(--text-strong)]">{variant.archetype}</p>
+                          <p className="mt-2 panel-copy max-w-none">{variant.narrative}</p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {variant.focus.map((focus) => (
+                              <span key={focus} className="pill-tag">{focus}</span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <p className="text-sm leading-7 text-[var(--text-muted)]">
                     <strong className="text-[var(--text)]">Superpower:</strong> {reading.synthesis.superpower}
                   </p>
@@ -566,6 +655,15 @@ export default function ReadingContent() {
                     <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
                       This is the element repeated most strongly across the unified reading.
                     </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                      Secondary element: {reading.synthesis.secondaryElement}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="pill-tag">Western {reading.synthesis.systemElements.western}</span>
+                      <span className="pill-tag">Vedic {reading.synthesis.systemElements.vedic}</span>
+                      <span className="pill-tag">Bazi {reading.synthesis.systemElements.bazi}</span>
+                      <span className="pill-tag">Numerology {reading.synthesis.systemElements.numerology}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -577,7 +675,7 @@ export default function ReadingContent() {
           <FadeIn>
             <div className="space-y-5">
               <p className="eyebrow">Deep Inquiry</p>
-              <h2 className="max-w-[12ch] font-display text-[clamp(2.2rem,5vw,4.2rem)] leading-[0.98] text-[var(--text-strong)]">
+              <h2 className="max-w-[12ch] font-display text-[clamp(1.85rem,4.8vw,3.8rem)] leading-[1.01] text-[var(--text-strong)]">
                 Choose the area you want interpreted in full.
               </h2>
               <p className="max-w-[37rem] text-base leading-8 text-[var(--text-muted)]">

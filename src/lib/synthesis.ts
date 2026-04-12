@@ -115,6 +115,179 @@ const ARCHETYPES: Record<string, { name: string; symbol: string; essence: string
   },
 };
 
+type SubtypeKey = 'vanguard' | 'steward' | 'weaver' | 'seer';
+
+const SUBTYPE_PROFILES: Record<SubtypeKey, { label: string; symbol: string; essenceTone: string; gift: string }> = {
+  vanguard: {
+    label: 'Vanguard',
+    symbol: '↑',
+    essenceTone: 'expressed through decisive movement, initiation, and visible leadership',
+    gift: 'You move first with conviction and make momentum contagious.',
+  },
+  steward: {
+    label: 'Steward',
+    symbol: '□',
+    essenceTone: 'expressed through consistency, containment, and long-cycle mastery',
+    gift: 'You stabilize complexity and turn vision into durable outcomes.',
+  },
+  weaver: {
+    label: 'Weaver',
+    symbol: '≈',
+    essenceTone: 'expressed through adaptation, synthesis, and contextual intelligence',
+    gift: 'You connect worlds and translate tension into workable patterns.',
+  },
+  seer: {
+    label: 'Seer',
+    symbol: '◌',
+    essenceTone: 'expressed through pattern-recognition, timing sensitivity, and reflective depth',
+    gift: 'You sense unseen currents early and act with unusual timing precision.',
+  },
+};
+
+const OPPOSING_ELEMENT_PAIRS = new Set([
+  'Fire-Water',
+  'Water-Fire',
+  'Air-Earth',
+  'Earth-Air',
+]);
+
+function pairLabel(system: string, element: string): string {
+  return `${system}: ${element}`;
+}
+
+function scoreAlignment(systemElements: Array<{ system: string; element: string }>, dominantCount: number, uniqueCount: number) {
+  let agreements = 0;
+  let conflicts = 0;
+  const agreementNotes: string[] = [];
+  const conflictNotes: string[] = [];
+
+  for (let i = 0; i < systemElements.length; i++) {
+    for (let j = i + 1; j < systemElements.length; j++) {
+      const left = systemElements[i];
+      const right = systemElements[j];
+      if (left.element === right.element) {
+        agreements += 1;
+        agreementNotes.push(`${pairLabel(left.system, left.element)} aligns with ${pairLabel(right.system, right.element)}.`);
+      } else if (OPPOSING_ELEMENT_PAIRS.has(`${left.element}-${right.element}`)) {
+        conflicts += 1;
+        conflictNotes.push(`${pairLabel(left.system, left.element)} clashes with ${pairLabel(right.system, right.element)}.`);
+      }
+    }
+  }
+
+  const agreementScore = Math.max(0, Math.min(100,
+    Math.round(((agreements / 6) * 70) + ((dominantCount / 4) * 30)),
+  ));
+  const conflictScore = Math.max(0, Math.min(100,
+    Math.round(((conflicts / 6) * 75) + (uniqueCount === 4 ? 25 : uniqueCount === 3 ? 12 : 0)),
+  ));
+
+  return { agreements, conflicts, agreementNotes, conflictNotes, agreementScore, conflictScore };
+}
+
+function selectSubtype(
+  western: WesternReading,
+  bazi: BaziReading,
+  numerology: NumerologyReading,
+  agreementScore: number,
+  conflictScore: number,
+): SubtypeKey {
+  const modality = western.sunSign.modality?.toLowerCase() ?? '';
+  const polarity = bazi.dayMaster.polarity;
+  const lp = numerology.lifePath.number;
+
+  if (agreementScore >= 72 && (polarity === 'Yang' || modality === 'cardinal')) return 'vanguard';
+  if (agreementScore >= 68 && (modality === 'fixed' || [4, 8, 22].includes(lp))) return 'steward';
+  if (conflictScore >= 55 || modality === 'mutable' || [5, 14].includes(lp)) return 'weaver';
+  return 'seer';
+}
+
+function buildContradictions(
+  elements: Record<string, number>,
+  subtype: SubtypeKey,
+  bazi: BaziReading,
+  numerology: NumerologyReading,
+): Array<{ title: string; narrative: string; guidance: string }> {
+  const contradictions: Array<{ title: string; narrative: string; guidance: string }> = [];
+  const has = (el: string) => (elements[el] ?? 0) > 0;
+
+  if (has('Fire') && has('Water')) {
+    contradictions.push({
+      title: 'Urgency vs. Sensitivity',
+      narrative: 'Your profile carries simultaneous pressure to act fast and to process deeply. This creates periods where your outer pace outruns your emotional integration.',
+      guidance: 'Sequence decisions in two passes: immediate direction now, emotional calibration 24 hours later.',
+    });
+  }
+
+  if (has('Air') && has('Earth')) {
+    contradictions.push({
+      title: 'Freedom vs. Structure',
+      narrative: 'One part of you seeks open possibility and experimentation while another part requires clear systems, proof, and order.',
+      guidance: 'Use bounded creativity: open ideation windows followed by non-negotiable execution blocks.',
+    });
+  }
+
+  if (bazi.dayMaster.polarity === 'Yang' && has('Water')) {
+    contradictions.push({
+      title: 'Strong Signal, Soft Core',
+      narrative: 'You can project certainty while internally registering subtle emotional data that others miss. People may misread this as inconsistency.',
+      guidance: 'State your processing cadence up front so collaborators understand your rhythm.',
+    });
+  }
+
+  if (numerology.lifePath.isMaster && subtype !== 'steward') {
+    contradictions.push({
+      title: 'Calling vs. Capacity',
+      narrative: 'Master-number pressure can make every choice feel spiritually significant, which can overload practical bandwidth.',
+      guidance: 'Anchor your higher calling to one measurable weekly commitment.',
+    });
+  }
+
+  if (!contradictions.length) {
+    contradictions.push({
+      title: 'Depth vs. Simplicity',
+      narrative: 'Your systems are relatively aligned, but your challenge is not overcomplication. You still need clear priorities to avoid dilution.',
+      guidance: 'Keep one primary objective per domain and prune anything that does not serve it.',
+    });
+  }
+
+  return contradictions.slice(0, 3);
+}
+
+function buildDomainVariants(
+  baseName: string,
+  subtypeLabel: string,
+  dominant: string,
+  secondary: string,
+): Array<{ domain: 'love' | 'career' | 'spirituality' | 'healing'; archetype: string; narrative: string; focus: string[] }> {
+  return [
+    {
+      domain: 'love',
+      archetype: `${baseName} in Love (${subtypeLabel})`,
+      narrative: `In relationships, your ${dominant.toLowerCase()} core seeks emotional truth while your ${secondary.toLowerCase()} layer determines how quickly trust is earned.`,
+      focus: ['Attachment pacing', 'Repair after conflict', 'Emotional transparency'],
+    },
+    {
+      domain: 'career',
+      archetype: `${baseName} at Work (${subtypeLabel})`,
+      narrative: `Professionally, this pattern excels when strategy and execution are linked. Your strongest output appears where ownership is clear and standards are explicit.`,
+      focus: ['Decision rights', 'Execution cadence', 'Leadership footprint'],
+    },
+    {
+      domain: 'spirituality',
+      archetype: `${baseName} on the Path (${subtypeLabel})`,
+      narrative: `Spiritually, your chart develops through disciplined reflection plus embodied practice. Insight deepens when lived, not only contemplated.`,
+      focus: ['Daily ritual', 'Meaning integration', 'Inner alignment'],
+    },
+    {
+      domain: 'healing',
+      archetype: `${baseName} in Healing (${subtypeLabel})`,
+      narrative: `Your recovery arc responds best to methods that integrate nervous-system regulation with narrative reframing and concrete habit change.`,
+      focus: ['Regulation first', 'Story revision', 'Sustainable habits'],
+    },
+  ];
+}
+
 function getArchetypeKey(dominant: string, secondary: string): string {
   const key = `${dominant}-${secondary}`;
   return key in ARCHETYPES ? key : `${dominant}-${dominant}`;
@@ -140,8 +313,27 @@ export function generateSynthesis(
   const dominant = sorted[0]?.[0] ?? 'Fire';
   const secondary = sorted[1]?.[0] ?? dominant;
 
+  const systemElements = [
+    { system: 'Western', element: westernEl },
+    { system: 'Vedic', element: vedicEl },
+    { system: 'Bazi', element: baziEl },
+    { system: 'Numerology', element: numEl },
+  ];
+
+  const dominantCount = sorted[0]?.[1] ?? 1;
+  const uniqueCount = sorted.length;
+  const alignment = scoreAlignment(systemElements, dominantCount, uniqueCount);
+  const subtype = selectSubtype(western, bazi, numerology, alignment.agreementScore, alignment.conflictScore);
+  const subtypeProfile = SUBTYPE_PROFILES[subtype];
+
   const archetypeKey = getArchetypeKey(dominant, secondary);
-  const archetype = ARCHETYPES[archetypeKey] ?? ARCHETYPES['Fire-Fire'];
+  const baseArchetype = ARCHETYPES[archetypeKey] ?? ARCHETYPES['Fire-Fire'];
+  const archetypeId = `${archetypeKey}-${subtype}`;
+  const contradictions = buildContradictions(counts, subtype, bazi, numerology);
+  const domainVariants = buildDomainVariants(baseArchetype.name, subtypeProfile.label, dominant, secondary);
+  const alignmentSynthesis = alignment.conflicts > alignment.agreements
+    ? 'Your systems are tension-rich: growth comes from integrating opposing drives instead of forcing one dominant identity.'
+    : 'Your systems show meaningful coherence: when you commit, momentum compounds quickly across life domains.';
 
   const coreStrengths = [
     ...western.sunSign.traits.slice(0, 2),
@@ -157,11 +349,35 @@ export function generateSynthesis(
   ];
 
   return {
-    archetype: archetype.name,
-    archetypeSymbol: archetype.symbol,
+    archetypeId,
+    archetype: `${baseArchetype.name} — ${subtypeProfile.label}`,
+    archetypeSymbol: `${baseArchetype.symbol}${subtypeProfile.symbol}`,
+    archetypeBase: baseArchetype.name,
+    subtype: subtypeProfile.label,
     dominantElement: dominant,
-    essence: archetype.essence,
-    superpower: archetype.superpower,
+    secondaryElement: secondary,
+    agreementScore: alignment.agreementScore,
+    conflictScore: alignment.conflictScore,
+    systemElements: {
+      western: westernEl,
+      vedic: vedicEl,
+      bazi: baziEl,
+      numerology: numEl,
+    },
+    elementDistribution: sorted.map(([element, count]) => ({
+      element,
+      count,
+      percentage: Math.round((count / 4) * 100),
+    })),
+    alignmentNotes: {
+      agreements: alignment.agreementNotes.slice(0, 4),
+      conflicts: alignment.conflictNotes.slice(0, 4),
+      synthesis: alignmentSynthesis,
+    },
+    contradictions,
+    domainVariants,
+    essence: `${baseArchetype.essence} In this chart, it is ${subtypeProfile.essenceTone}.`,
+    superpower: `${baseArchetype.superpower} ${subtypeProfile.gift}`,
     coreStrengths,
     growthAreas,
   };

@@ -86,9 +86,42 @@ export interface NumerologyReading {
 }
 
 export interface Synthesis {
+  archetypeId: string;
   archetype: string;
   archetypeSymbol: string;
+  archetypeBase: string;
+  subtype: string;
   dominantElement: string;
+  secondaryElement: string;
+  agreementScore: number;
+  conflictScore: number;
+  systemElements: {
+    western: string;
+    vedic: string;
+    bazi: string;
+    numerology: string;
+  };
+  elementDistribution: Array<{
+    element: string;
+    count: number;
+    percentage: number;
+  }>;
+  alignmentNotes: {
+    agreements: string[];
+    conflicts: string[];
+    synthesis: string;
+  };
+  contradictions: Array<{
+    title: string;
+    narrative: string;
+    guidance: string;
+  }>;
+  domainVariants: Array<{
+    domain: 'love' | 'career' | 'spirituality' | 'healing';
+    archetype: string;
+    narrative: string;
+    focus: string[];
+  }>;
   essence: string;
   superpower: string;
   coreStrengths: string[];

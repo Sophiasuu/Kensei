@@ -1,13 +1,11 @@
 'use client';
 
-import LotusBloom from '@/components/LotusBloom';
-
-export default function Splash() {
+export default function Splash({ exiting = false }: { exiting?: boolean }) {
   return (
-    <div className="splash" aria-hidden="true">
-      <LotusBloom size={200} />
-      <span className="splash-title">Psychic Central</span>
-      <div className="splash-line" />
+    <div className="splash" data-exiting={exiting} aria-hidden="true">
+      <div className="splash-icon-wrap">
+        <img src="/illustrations/moon-mobile.png" alt="" width={120} height={120} draggable={false} className="splash-icon" />
+      </div>
       <span className="splash-sub">Ancient Wisdom · Modern Clarity</span>
     </div>
   );

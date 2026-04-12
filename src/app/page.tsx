@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FadeIn from '@/components/FadeIn';
 import MysticIllustration from '@/components/MysticIllustration';
+import Splash from '@/components/Splash';
 
 const SYSTEMS = [
   { name: 'Western', sub: 'Sun sign, modality, and core archetype', icon: '☽' },
@@ -35,10 +36,21 @@ const READING_SECTIONS = [
 
 export default function HomePage() {
   const router = useRouter();
+  const [splashPhase, setSplashPhase] = useState<'loading' | 'exiting' | 'done'>('loading');
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [tob, setTob] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const exitTimer = window.setTimeout(() => setSplashPhase('exiting'), 1400);
+    const doneTimer = window.setTimeout(() => setSplashPhase('done'), 3800);
+
+    return () => {
+      window.clearTimeout(exitTimer);
+      window.clearTimeout(doneTimer);
+    };
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,22 +64,25 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative overflow-hidden px-5 pb-16 pt-6 sm:px-8 lg:px-10">
-      {/* Co-Star style floating background illustrations */}
-      <div className="mystic-bg-illustration" style={{ top: '4%', right: '18%', width: 400, height: 400, animationDuration: '18s' }}>
-        <img src="/illustrations/moon-mobile.png" alt="" width={400} height={400} draggable={false} />
-      </div>
-      <div className="mystic-bg-illustration" style={{ top: '52%', left: '35%', width: 380, height: 380, animationDuration: '22s', animationDelay: '3s' }}>
-        <img src="/illustrations/saturn.png" alt="" width={380} height={380} draggable={false} />
-      </div>
-      <div className="mystic-bg-illustration" style={{ top: '32%', right: '10%', width: 340, height: 340, animationDuration: '20s', animationDelay: '6s' }}>
-        <img src="/illustrations/crystals.png" alt="" width={340} height={340} draggable={false} />
-      </div>
-      <div className="mystic-bg-illustration" style={{ bottom: '12%', left: '40%', width: 320, height: 320, animationDuration: '24s', animationDelay: '2s' }}>
-        <img src="/illustrations/potion-bottle.png" alt="" width={320} height={320} draggable={false} />
-      </div>
+    <>
+      {splashPhase !== 'done' ? <Splash exiting={splashPhase === 'exiting'} /> : null}
 
-      <div className="mx-auto max-w-7xl">
+      <main className="relative overflow-hidden px-5 pb-16 pt-6 sm:px-8 lg:px-10">
+        {/* Co-Star style floating background illustrations */}
+        <div className="mystic-bg-illustration" style={{ top: '4%', right: '18%', width: 400, height: 400, animationDuration: '18s' }}>
+          <img src="/illustrations/moon-mobile.png" alt="" width={400} height={400} draggable={false} />
+        </div>
+        <div className="mystic-bg-illustration" style={{ top: '52%', left: '35%', width: 380, height: 380, animationDuration: '22s', animationDelay: '3s' }}>
+          <img src="/illustrations/saturn.png" alt="" width={380} height={380} draggable={false} />
+        </div>
+        <div className="mystic-bg-illustration" style={{ top: '32%', right: '10%', width: 340, height: 340, animationDuration: '20s', animationDelay: '6s' }}>
+          <img src="/illustrations/crystals.png" alt="" width={340} height={340} draggable={false} />
+        </div>
+        <div className="mystic-bg-illustration" style={{ bottom: '12%', left: '40%', width: 320, height: 320, animationDuration: '24s', animationDelay: '2s' }}>
+          <img src="/illustrations/potion-bottle.png" alt="" width={320} height={320} draggable={false} />
+        </div>
+
+        <div className="mx-auto max-w-7xl">
         <section className="grid gap-12 lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="space-y-10">
             <FadeIn>
@@ -80,9 +95,9 @@ export default function HomePage() {
             </FadeIn>
 
             <FadeIn delay={80}>
-              <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_17rem] md:items-end">
+              <div className="grid gap-8 md:items-end">
                 <div className="space-y-5">
-                  <h1 className="max-w-[11ch] font-display text-[clamp(3.6rem,9vw,7.4rem)] leading-[0.95] text-[var(--text-strong)]">
+                  <h1 className="max-w-[11ch] font-display text-[clamp(2.5rem,8.2vw,6.9rem)] leading-[0.96] text-[var(--text-strong)]">
                     Four ancient systems, one exact reading.
                   </h1>
                   <p className="max-w-[38rem] text-[1.05rem] leading-8 text-[var(--text-muted)] sm:text-[1.12rem]">
@@ -90,14 +105,6 @@ export default function HomePage() {
                     Vedic astrology, Bazi, and numerology, then resolves them into one clear narrative.
                   </p>
                 </div>
-
-                <aside className="quote-panel">
-                  <MysticIllustration name="sleeping-moon" placement="corner-tr" size={90} opacity={1} />
-                  <p className="quote-mark">Ritual note</p>
-                  <p className="quote-copy">
-                    Built for first-time seekers who want depth fast, without the usual haze of mystic filler or generic AI wellness copy.
-                  </p>
-                </aside>
               </div>
             </FadeIn>
 
@@ -142,7 +149,7 @@ export default function HomePage() {
               <MysticIllustration name="quill" placement="corner-br" size={80} opacity={1} />
               <div className="space-y-3">
                 <p className="eyebrow">Begin The Reading</p>
-                <h2 className="font-display text-[clamp(2.25rem,5vw,3.6rem)] leading-[1.02] text-[var(--text-strong)]">
+                <h2 className="font-display text-[clamp(1.85rem,4.7vw,3.25rem)] leading-[1.04] text-[var(--text-strong)]">
                   Enter the coordinates.
                 </h2>
                 <p className="max-w-[34rem] text-base leading-7 text-[var(--text-muted)]">
@@ -218,7 +225,7 @@ export default function HomePage() {
           <FadeIn>
             <div className="space-y-5">
               <p className="eyebrow">How It Reads</p>
-              <h2 className="max-w-[12ch] font-display text-[clamp(2.4rem,6vw,4.6rem)] leading-[0.98] text-[var(--text-strong)]">
+              <h2 className="max-w-[12ch] font-display text-[clamp(1.95rem,5.2vw,4.2rem)] leading-[1.01] text-[var(--text-strong)]">
                 Structured like a dossier, not a toy.
               </h2>
               <p className="max-w-[37rem] text-base leading-8 text-[var(--text-muted)]">
@@ -261,8 +268,9 @@ export default function HomePage() {
           <p>Psychic Central arranges ancient systems into one coherent modern report.</p>
           <p>© {new Date().getFullYear()} Psychic Central</p>
         </footer>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }
 
